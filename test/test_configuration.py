@@ -179,11 +179,19 @@ def test_add_source():
         bad_type: ConfigSource = 3
         c.add_source(bad_type)
 
-    assert len(c.config_sources) == 1
+    assert len(c.config_sources) == 0
     new_source = DictConfigSource({})
     c.add_source(new_source)
-    assert len(c.config_sources) == 2
+    assert len(c.config_sources) == 1
     assert c.config_sources[-1] is new_source
+
+
+def test_init_with_sources():
+    c = Config(sources=[
+        DictConfigSource({}),
+        DictConfigSource({})
+    ])
+    assert 2 == len(c.config_sources)
 
 
 def test_section_decorator():
@@ -227,3 +235,16 @@ def test_least_verbose_config():
 
     assert 'abc' == c.prop1
     assert 44 == c.prop2
+
+
+def test_section_decorator_precedence():
+    @section('decorator')
+    class SampleConfig(Config):
+        decorator_section = key(cast=str)
+        key_specific_section = key(section_name='key_specific', cast=str)
+
+    c = SampleConfig(sources=[DictConfigSource({
+        'decorator': dict(decorator_section='a'),
+        'key_specific': dict(key_specific_section='b')
+    })])
+    c.read()

@@ -13,9 +13,11 @@ class ConfigSource(ABC):
 class EnvironmentConfigSource(ConfigSource):
     def __init__(self, prefix: str=""):
         self.prefix = prefix
+        if len(self.prefix) > 0:
+            self.prefix += "_"
 
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
-        return os.environ.get(f"{self.prefix.upper()}_{section_name.upper()}_{key_name.upper()}", None)
+        return os.environ.get(f"{self.prefix.upper()}{section_name.upper()}_{key_name.upper()}", None)
 
 
 class AbstractIniConfigSource(ConfigSource):
@@ -46,11 +48,25 @@ class IniFileConfigSource(AbstractIniConfigSource):
 
 class DictConfigSource(ConfigSource):
     def __init__(self, config: Dict[str, Dict[str, str]]):
-        self._config = config
+        # Quick checks on data format
+        assert type(config) is dict
+        for k, v in config.items():
+            assert type(k) is str
+            assert type(v) is dict
+            for v_k, v_v in v.items():
+                assert type(v_k) is str
+                assert type(v_v) is str
+        # Convert all keys to lowercase
+        self._config = {
+            k.lower(): {
+                v_k.lower(): v_v
+                for v_k, v_v in v.items()
+            }
+            for k, v in config.items()
+        }
 
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
-        section = self._config.get(section_name, None)
+        section = self._config.get(section_name.lower(), None)
         if section is None:
             return None
-        value = section.get(key_name, None)
-        return value
+        return section.get(key_name.lower(), None)

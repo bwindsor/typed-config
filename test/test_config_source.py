@@ -6,21 +6,28 @@ from typedconfig.source import ConfigSource, IniFileConfigSource, IniStringConfi
 
 
 def do_assertions(source: ConfigSource):
+    v = source.get_config_value('s', 'A')
+    assert '1' == v
+
     v = source.get_config_value('s', 'a')
     assert '1' == v
 
-    v = source.get_config_value('t', 'a')
+    v = source.get_config_value('s', 'B')
+    assert '2' == v
+
+    v = source.get_config_value('s', 'b')
+    assert '2' == v
+
+    v = source.get_config_value('t', 'A')
     assert v is None
 
-    v = source.get_config_value('s', 'c')
+    v = source.get_config_value('s', 'C')
     assert v is None
 
 
 def test_dict_config_source():
     source = DictConfigSource({
-        's': {
-            'a': '1'
-        }
+        's': dict(A='1', b='2')
     })
     do_assertions(source)
 
@@ -36,6 +43,7 @@ def test_ini_file_config_source(encoding):
             f.write("""
 [s]
 a = 1
+B = 2
 """)
 
         source = IniFileConfigSource(file_name, encoding=encoding)
@@ -57,11 +65,18 @@ def test_ini_string_config_source():
     source = IniStringConfigSource("""
 [s]
 a = 1
+B = 2
     """)
     do_assertions(source)
 
 
-@patch.dict(os.environ, {'THERMOBOT_TEST_S_A': '1'})
+@patch.dict(os.environ, {'PREFIX_S_a': '1', 'PREFIX_S_B': '2'})
+def test_environment_config_source_with_prefix():
+    source = EnvironmentConfigSource("PREFIX")
+    do_assertions(source)
+
+
+@patch.dict(os.environ, {'S_a': '1', 'S_B': '2'})
 def test_environment_config_source():
-    source = EnvironmentConfigSource("THERMOBOT_TEST")
+    source = EnvironmentConfigSource()
     do_assertions(source)

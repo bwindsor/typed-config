@@ -148,13 +148,13 @@ class Config:
     _composed_config_registration_string = '__composed_config__'
     _config_key_registration_string = '__config_key__'
 
-    def __init__(self, section_name=None):
+    def __init__(self, section_name=None, sources: List[ConfigSource]=None):
         self._section_name = section_name
         self._cache: Dict[str, Dict[str, str]] = {}
-        # Add a dict source based on this cache as the highest priority source
-        # to read from (i.e. use the cache if the value is there)
-        # Note we don't use add_source here since that propagates to children
-        self._config_sources: List[ConfigSource] = [DictConfigSource(self._cache)]
+        self._config_sources: List[ConfigSource] = []
+        if sources is not None:
+            for s in sources:
+                self.add_source(s)
 
     def _add_to_cache(self, section_name: str, key_name: str, value):
         if section_name not in self._cache:
