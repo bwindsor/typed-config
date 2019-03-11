@@ -1,5 +1,4 @@
 # This future import allows methods of Config to use Config as their return type
-from __future__ import annotations
 from typing import TypeVar, List, Optional, Callable, Dict, Type
 from typedconfig.source import ConfigSource, DictConfigSource
 from itertools import dropwhile, islice, chain
@@ -129,7 +128,7 @@ def group_key(cls: Callable[[], U]) -> U:
     return wrapped_f
 
 
-def section(section_name: str) -> Callable[[Type[Config]], Type[Config]]:
+def section(section_name: str) -> Callable[[Type['Config']], Type['Config']]:
     def _section(cls: Type[Config]):
         class SectionConfig(cls):
             def __init__(self, *args, **kwargs):
@@ -196,7 +195,7 @@ class Config:
         else:
             return False
 
-    def get_registered_composed_config(self) -> List[Config]:
+    def get_registered_composed_config(self) -> List['Config']:
         """
         Gets a list of all composed configs or "sub configs",
         that is configs which are registered with the group_key function.
