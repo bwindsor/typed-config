@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.org/bwindsor/typed-config.svg?branch=master)](https://travis-ci.org/bwindsor/typed-config)
 
 # typed-config
-Typed, extensible configuration reader for Python projects for multiple config sources and good autocomplete performance.
+Typed, extensible, dependency free configuration reader for Python projects for multiple config sources and working well in IDEs for great autocomplete performance.
+
+`pip install typed-config`
 
 ## Basic usage
 ```python
@@ -23,12 +25,21 @@ config.read()
 ```python
 # my_app/main.py
 from my_app.config import config
-print(config.host)  # Will be read from the environment variable DATABASE_HOST
+print(config.host)
 ```
 In PyCharm, and hopefully other IDEs, it will recognise the datatypes of your configuration and allow you to autocomplete. No more remembering strings to get the right thing out!
 
 ## How it works
-Configuration is always supplied in a two level structure, so your source configuration can have multiple sections, and each section contains multiple key/value configuration pairs.
+Configuration is always supplied in a two level structure, so your source configuration can have multiple sections, and each section contains multiple key/value configuration pairs. For example:
+```ini
+[database]
+host = 127.0.0.1
+port = 2000
+
+[algorithm]
+max_value = 10
+min_value = 20
+```
 
 You then create your configuration hierarchy in code (this can be flat or many levels deep) and supply the matching between strings in your config sources and properties of your configuration classes.
 
@@ -51,6 +62,12 @@ class DatabaseConfig(Config):
 config = DatabaseConfig()
 config.add_source(EnvironmentConfigSource(prefix="EXAMPLE"))
 config.add_source(IniFileConfigSource("config.cfg"))
+
+# OR provide sources directly to the constructor
+config = DatabaseConfig(sources=[
+    EnvironmentConfigSource(prefix="EXAMPLE"),
+    IniFileConfigSource("config.cfg")
+])
 ```
 
 Since you don't want to hard code your secret credentials, you might supply them through the environment.
@@ -79,7 +96,7 @@ For fail fast behaviour, and also to stop unexpected latency when a config value
 
 `config.read()`
 
-This will throw an exception if any required config value cannot be found, and will also keep all read config values in memory for next time they are used.
+This will throw an exception if any required config value cannot be found, and will also keep all read config values in memory for next time they are used. If you do not use `read` you will only get the exception when you first try to use the offending config key.
 
 ### Hierarchical configuration
 Use `group_key` to represent a "sub-config" of a configuration. Set up "sub-configs" exactly as demonstrated above, and then create a parent config to compose them in one place.
@@ -100,6 +117,7 @@ class AlgorithmConfig(Config):
 class ParentConfig(Config):
     database = group_key(DatabaseConfig)
     algorithm = group_key(AlgorithmConfig)
+    description = key(cast=str, section_name="general")
 
 config = ParentConfig()
 config.add_source(EnvironmentConfigSource(prefix="EXAMPLE"))
@@ -122,7 +140,7 @@ class AppConfig(Config):
 ```
 Both `host1` and `host2` are legitimate configuration key definitions.
 
-* `section_name` - this name of the section in the configuration source from which this parameter should be read. This can be provided on a key-by-key basis, but if it is left out then the section name supplied by the `@section` decorator is used. If all keys supply a `section_name`, the class decorator is not needed.
+* `section_name` - this name of the section in the configuration source from which this parameter should be read. This can be provided on a key-by-key basis, but if it is left out then the section name supplied by the `@section` decorator is used. If all keys supply a `section_name`, the class decorator is not needed. If both `section_name` and a decorator are provided, the `section_name` argument takes priority.
 * `key_name` - the name of this key in the configuration source from which this parameter is read. If not supplied, some magic uses the object property name as the key name.
 * `required` - default True. If False, and the configuration value can't be found, no error will be thrown and the default value will be used, if provided. If a default not provided, `None` will be used.
 * `cast` - probably the most important option for typing. **If you want autocomplete typing support you must specify this**. It's just a function which takes a string as an input and returns a parsed value. See the casting section for more. If not supplied, the value remains as a string.
@@ -142,7 +160,7 @@ class AppConfig(Config):
     port = key(cast=int)
     users = key(cast=split_str)
     zero_based_index = key(cast=lambda x: int(x)-1)
-config = AppConfig()
+config = AppConfig(sources=[...])
 ```
 In this example we have three ways of casting:
 1. Not casting at all. This default to returning a `str`, but your IDE won't know that so if you want type hints use `cast=str`
@@ -160,8 +178,13 @@ config.add_source(my_first_source)
 config.add_source(my_second_source)
 config.read()
 ```
+Or you can supply the sources directly in the constructor like this:
+```python
+config = AppConfig(sources=[my_first_source, my_second_source])
+config.read()
+```
 
-This is bad practice, but if for some reason you do add further config sources after it's been read, you'll need to clear any cached values in order to force re-reading of the config. You can do this by
+The below is bad practice, but if for some reason you do add further config sources after it's been read, or need to refresh the config for some reason, you'll need to clear any cached values in order to force re-reading of the config. You can do this by
 ```python
 config.clear_cache()
 config.read()          # Read all configuration values again
@@ -174,7 +197,7 @@ This just reads configuration from environment variables.
 from typedconfig.source import EnvironmentConfigSource
 source = EnvironmentConfigSource(prefix="XYZ")
 # OR just
-source = EnvironmentConfigSource(prefix="XYZ")
+source = EnvironmentConfigSource()
 ```
 It just takes one optional input argument, a prefix. This can be useful to avoid name clashes in environment variables.
 
@@ -203,7 +226,7 @@ key_name=key_value
 ```
 
 #### `DictConfigSource`
-The most basic source, entirely in memory, and also useful when writing tests.
+The most basic source, entirely in memory, and also useful when writing tests. It is case insensitive.
 ```python
 from typedconfig.source import DictConfigSource
 source = DictConfigSource({
@@ -217,7 +240,7 @@ It expects data type `Dict[str, Dict[str, str]]`, i.e. such that `string_value =
 This is an alternative way of supplying default values instead of using the `default` option when defining your `key`s. Just provide a `DictConfigSource` as the lowest priority source, containing your defaults.
 
 ### Writing your own `ConfigSource`s
-An abstract base class `ConfigSource` is supplied. You should extend it and implement the method `get_config_value` as demonstrated below, which takes a section name and key name, and returns either a `str` config value, or `None` if the value could not be found. It should not error if the value cannot be found, `Config` will throw an error later if it still can't find the value in any of its other available sources.
+An abstract base class `ConfigSource` is supplied. You should extend it and implement the method `get_config_value` as demonstrated below, which takes a section name and key name, and returns either a `str` config value, or `None` if the value could not be found. It should not error if the value cannot be found, `Config` will throw an error later if it still can't find the value in any of its other available sources. To make it easier for the user try to make your source case insensitive.
 
 Here's an outline of how you might implement a source to read your config from a JSON file, for example. Use the `__init__` method to provide any information your source needs to fetch the data, such as filename, api details, etc. You can do sanity checks in the `__init__` method and throw an error if something is wrong.
 ```python
@@ -232,15 +255,39 @@ class JsonConfigSource(ConfigSource):
             self.data = json.load(f)
         # Quick checks on data format
         assert type(self.data) is dict
-        for v in self.data.values():
+        for k, v in self.data.items():
+            assert type(k) is str
             assert type(v) is dict
+            for v_k, v_v in v.items():
+                assert type(v_k) is str
+                assert type(v_v) is str
+        # Convert all keys to lowercase
+        self.data = {
+            k.lower(): {
+                v_k.lower(): v_v
+                for v_k, v_v in v.items()
+            }
+            for k, v in self.data.items()
+        }    
 
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
         # Extract info from data which we read in during __init__
-        if section_name not in self.data:
+        section = self.data.get(section_name.lower(), None)
+        if section is None:
             return None
-        return self.data[section_name].get(key_name, None)
+        return section.get(key_name.lower(), None)
 ```
+
+### Additional config sources
+TODO - add these links correctly once on PyPI
+
+In order to keep `typed-config` dependency free, `ConfigSources` requiring additional dependencies are in separate packages, which also have `typed-config` as a dependency.
+
+These are listed here:
+
+| pip install name | import name | Description |
+| --- | --- | --- |
+| [typed-config-aws-sources]() | typedconfig.awssource | Config sources using `boto3` to get config e.g. from S3 or DynamoDB
 
 ## Contributing
 Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7.
