@@ -27,7 +27,6 @@ def test_dict_config_source():
 
 @pytest.mark.parametrize("encoding", [
     "utf8",
-    "ansi",
     "windows-1252",
 ])
 def test_ini_file_config_source(encoding):
