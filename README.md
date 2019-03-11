@@ -1,9 +1,12 @@
 [![Build Status](https://travis-ci.org/bwindsor/typed-config.svg?branch=master)](https://travis-ci.org/bwindsor/typed-config)
+[![codecov](https://codecov.io/gh/bwindsor/typed-config/branch/master/graph/badge.svg)](https://codecov.io/gh/bwindsor/typed-config)
 
 # typed-config
 Typed, extensible, dependency free configuration reader for Python projects for multiple config sources and working well in IDEs for great autocomplete performance.
 
 `pip install typed-config`
+
+Requires python 3.6 or above.
 
 ## Basic usage
 ```python
@@ -290,7 +293,7 @@ These are listed here:
 | [typed-config-aws-sources]() | typedconfig.awssource | Config sources using `boto3` to get config e.g. from S3 or DynamoDB
 
 ## Contributing
-Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7.
+Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with v3.6 too.
 
 ### Development setup
 1. Clone the git repository
@@ -299,4 +302,8 @@ Ideas for new features and pull requests are welcome. PRs must come with tests i
 4. Install development dependencies `pip install -r requirements.txt`
 
 ### Running tests
-`pytest ./test`
+`pytest`
+
+To run with coverage:
+
+`pytest --cov`
