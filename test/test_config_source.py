@@ -70,13 +70,13 @@ B = 2
     do_assertions(source)
 
 
-@patch.dict(os.environ, {'PREFIX_S_a': '1', 'PREFIX_S_B': '2'})
+@patch.dict(os.environ, {'PREFIX_S_A': '1', 'PREFIX_S_B': '2'})
 def test_environment_config_source_with_prefix():
     source = EnvironmentConfigSource("PREFIX")
     do_assertions(source)
 
 
-@patch.dict(os.environ, {'S_a': '1', 'S_B': '2'})
+@patch.dict(os.environ, {'S_A': '1', 'S_B': '2'})
 def test_environment_config_source():
     source = EnvironmentConfigSource()
     do_assertions(source)
