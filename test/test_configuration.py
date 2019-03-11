@@ -248,3 +248,12 @@ def test_section_decorator_precedence():
         'key_specific': dict(key_specific_section='b')
     })])
     c.read()
+
+
+def test_no_section_provided():
+    class SampleConfig(Config):
+        k = key(cast=str)
+
+    c = SampleConfig()
+    with pytest.raises(ValueError):
+        c.read()

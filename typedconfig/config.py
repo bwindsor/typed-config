@@ -1,6 +1,6 @@
 # This future import allows methods of Config to use Config as their return type
 from typing import TypeVar, List, Optional, Callable, Dict, Type
-from typedconfig.source import ConfigSource, DictConfigSource
+from typedconfig.source import ConfigSource
 from itertools import dropwhile, islice, chain
 import inspect
 
@@ -134,9 +134,6 @@ def section(section_name: str) -> Callable[[Type['Config']], Type['Config']]:
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, section_name=section_name, **kwargs)
 
-            def __dict__(self):
-                pass
-
         return SectionConfig
     return _section
 
@@ -169,13 +166,6 @@ class Config:
     @property
     def config_sources(self) -> List[ConfigSource]:
         return self._config_sources
-
-    @staticmethod
-    def _is_member_registered(member, reg_string: str):
-        if isinstance(member, property):
-            return getattr(member.fget, reg_string, False)
-        else:
-            return False
 
     def get_registered_properties(self) -> List[str]:
         """
