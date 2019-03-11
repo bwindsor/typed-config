@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bwindsor/typed-config.svg?branch=master)](https://travis-ci.org/bwindsor/typed-config)
+
 # typed-config
 Typed, extensible configuration reader for Python projects for multiple config sources and good autocomplete performance.
 
