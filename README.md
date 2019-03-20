@@ -282,15 +282,13 @@ class JsonConfigSource(ConfigSource):
 ```
 
 ### Additional config sources
-TODO - add these links correctly once on PyPI
-
 In order to keep `typed-config` dependency free, `ConfigSources` requiring additional dependencies are in separate packages, which also have `typed-config` as a dependency.
 
 These are listed here:
 
 | pip install name | import name | Description |
 | --- | --- | --- |
-| [typed-config-aws-sources]() | typedconfig.awssource | Config sources using `boto3` to get config e.g. from S3 or DynamoDB
+| [typed-config-aws-sources](https://pypi.org/project/typed-config-aws-sources) | `typedconfig_awssource` | Config sources using `boto3` to get config e.g. from S3 or DynamoDB
 
 ## Contributing
 Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with v3.6 too.
