@@ -3,7 +3,7 @@ from setuptools import setup
 from typedconfig.__version__ import __version__
 
 # The text of the README file
-readme_text = Path(__file__).with_name("README.md")
+readme_text = Path(__file__).with_name("README.md").read_text()
 
 setup(
     name='typed-config',
