@@ -133,6 +133,7 @@ def section(section_name: str) -> Callable[[Type['Config']], Type['Config']]:
         class SectionConfig(cls):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, section_name=section_name, **kwargs)
+        SectionConfig.__name__ = cls.__name__
 
         return SectionConfig
     return _section

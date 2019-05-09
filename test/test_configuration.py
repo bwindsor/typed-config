@@ -257,3 +257,27 @@ def test_no_section_provided():
     c = SampleConfig()
     with pytest.raises(ValueError):
         c.read()
+
+
+def test_multiple_group_keys_with_section_decorators():
+    @section('a')
+    class Child1(Config):
+        k1 = key(cast=str)
+
+    @section('b')
+    class Child2(Config):
+        k2 = key(cast=str)
+
+    class ParentConfig(Config):
+        c1 = group_key(Child1)
+        c2 = group_key(Child2)
+
+    c1 = Child1()
+    c2 = Child2()
+
+    assert c1._section_name == 'a'
+    assert c2._section_name == 'b'
+
+    p = ParentConfig()
+    assert p.c1._section_name == 'a'
+    assert p.c2._section_name == 'b'

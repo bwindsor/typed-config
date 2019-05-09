@@ -306,14 +306,17 @@ To run with coverage:
 
 `pytest --cov`
 
-### Deploying to PyPI
+### Making a release
 You'll need to `pip install twine` if you don't have it.
 
 1. Bump version number in `typedconfig/__version__.py`
-2. `python setup.py sdist bdist_wheel`
-3. `twine check dist/*`
-4. Upload to the test PyPI `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
-5. Check all looks ok at [https://test.pypi.org/project/typed-config](https://test.pypi.org/project/typed-config)
-6. Upload to live PyPI `twine upload dist/*`
+2. Add changes to [CHANGELOG.md](CHANGELOG.md)
+3. Commit your changes and tag with `git tag -a v0.1.0 -m "Summary of changes"`
+4. Clear the dist directory `rm -r dist`
+5. `python setup.py sdist bdist_wheel`
+6. `twine check dist/*`
+7. Upload to the test PyPI `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
+8. Check all looks ok at [https://test.pypi.org/project/typed-config](https://test.pypi.org/project/typed-config)
+9. Upload to live PyPI `twine upload dist/*`
 
 Here is [a good tutorial](https://realpython.com/pypi-publish-python-package) on publishing packages to PyPI.
