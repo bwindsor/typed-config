@@ -279,5 +279,9 @@ def test_multiple_group_keys_with_section_decorators():
     assert c2._section_name == 'b'
 
     p = ParentConfig()
+    p.add_source(DictConfigSource({'a': {'k1': 'v1'}, 'b': {'k2': 'v2'}}))
     assert p.c1._section_name == 'a'
     assert p.c2._section_name == 'b'
+
+    assert 'v1' == p.c1.k1
+    assert 'v2' == p.c2.k2
