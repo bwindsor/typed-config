@@ -1,5 +1,5 @@
 # This future import allows methods of Config to use Config as their return type
-from typing import TypeVar, List, Optional, Callable, Dict, Type
+from typing import TypeVar, List, Optional, Callable, Dict, Type, Union
 from typedconfig.source import ConfigSource
 from itertools import dropwhile, islice, chain
 import inspect
@@ -23,7 +23,7 @@ def _propagate_to_children():
 def key(section_name: str=None,
         key_name: str=None,
         required: bool=True,
-        cast: Callable[[object], T]=None,
+        cast: Callable[[Union[T, str]], T]=None,
         default: T=None) -> T:
     """
     Provides a getter for a configuration key
