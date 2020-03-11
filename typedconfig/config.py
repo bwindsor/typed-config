@@ -2,7 +2,6 @@
 from typing import TypeVar, List, Optional, Callable, Dict, Type, Union
 from typedconfig.source import ConfigSource
 from itertools import dropwhile, islice, chain
-from typedconfig.concurrent import ThreadedRunner
 import inspect
 
 T = TypeVar('T')
@@ -15,12 +14,8 @@ def _propagate_to_children():
         def wrapped_f(self, *args, **kwargs):
             child_configs = self.get_registered_composed_config()
             f(self, *args, **kwargs)
-
-            def parallel_function(cfg):
-                wrapped_f(cfg, *args, **kwargs)
-
-            runner = ThreadedRunner(parallel_function)
-            runner.run(child_configs)
+            for c in child_configs:
+                wrapped_f(c, *args, **kwargs)
         return wrapped_f
     return propagate_to_children
 
@@ -217,11 +212,8 @@ class Config:
         None
         """
         registered_properties = self.get_registered_properties()
-
-        def parallel_function(prop):
-            return getattr(self, prop)
-        runner = ThreadedRunner(parallel_function)
-        runner.run(registered_properties)
+        for f in registered_properties:
+            getattr(self, f)
 
     @_propagate_to_children()
     def clear_cache(self):

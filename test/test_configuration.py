@@ -104,26 +104,6 @@ def test_read(config_dict, expect_error):
         assert config_dict['PROP1'] == config.prop1
 
 
-def test_read_many_parallel():
-    class SampleConfigChild(Config):
-        prop1 = key('s', 'prop1')
-        prop2 = key('s', 'prop2')
-
-    class SampleConfig(Config):
-        prop1 = key('s', 'prop1')
-        prop2 = key('s', 'prop2')
-        nested1 = group_key(SampleConfigChild)
-        nested2 = group_key(SampleConfigChild)
-
-    config = SampleConfig()
-    source_dict = {'s': {'PROP1': 'x', 'PROP2': 'y'}}
-    config.add_source(DictConfigSource(source_dict))
-    config.read()
-    assert config._cache == source_dict
-    assert config.nested1._cache == source_dict
-    assert config.nested2._cache == source_dict
-
-
 @pytest.mark.parametrize("prop_val, args, expected_value_or_error", [
     ('a', dict(required=True), 'a'),
     (None, dict(required=False), None),
