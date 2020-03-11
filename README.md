@@ -245,6 +245,8 @@ This is an alternative way of supplying default values instead of using the `def
 ### Writing your own `ConfigSource`s
 An abstract base class `ConfigSource` is supplied. You should extend it and implement the method `get_config_value` as demonstrated below, which takes a section name and key name, and returns either a `str` config value, or `None` if the value could not be found. It should not error if the value cannot be found, `Config` will throw an error later if it still can't find the value in any of its other available sources. To make it easier for the user try to make your source case insensitive.
 
+The `get_config_value` method should be thread safe as it will be called in parallel if multiple config values are being loaded at once by the `read` method of a `Config`.
+
 Here's an outline of how you might implement a source to read your config from a JSON file, for example. Use the `__init__` method to provide any information your source needs to fetch the data, such as filename, api details, etc. You can do sanity checks in the `__init__` method and throw an error if something is wrong.
 ```python
 import json
