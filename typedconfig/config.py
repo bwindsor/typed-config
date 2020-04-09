@@ -151,10 +151,7 @@ class Config:
     def __init__(self, section_name=None, sources: List[ConfigSource]=None,
                  provider: Optional[ConfigProvider]=None):
         self._section_name = section_name
-        self._provider: ConfigProvider = provider or ConfigProvider()
-        if sources is not None:
-            for s in sources:
-                self._provider.add_source(s)
+        self._provider: ConfigProvider = provider or ConfigProvider(sources=sources)
 
     @property
     def config_sources(self) -> List[ConfigSource]:

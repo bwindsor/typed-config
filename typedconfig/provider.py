@@ -7,9 +7,12 @@ class ConfigProvider:
     Configuration provider keeping the cache and sources that can be shared
     across the configuration objects
     """
-    def __init__(self):
+    def __init__(self, sources: List[ConfigSource]=None):
         self._cache: Dict[str, Dict[str, str]] = {}
         self._config_sources: List[ConfigSource] = []
+        if sources is not None:
+            for s in sources:
+                self.add_source(s)
 
     def add_to_cache(self, section_name: str, key_name: str, value) -> None:
         if section_name not in self._cache:
