@@ -157,6 +157,10 @@ class Config:
     def config_sources(self) -> List[ConfigSource]:
         return self._provider.config_sources
 
+    @property
+    def provider(self) -> ConfigProvider:
+        return self._provider
+
     def get_registered_properties(self) -> List[str]:
         """
         Gets a list of all properties which have been defined using the key function
