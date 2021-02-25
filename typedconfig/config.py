@@ -245,7 +245,7 @@ class Config:
         """
         if not isinstance(source, ConfigSource):
             raise TypeError("Sources must be subclasses of ConfigSource")
-        logger.debug(f'Adding config source of type {source.__class__.__name__}')
+        logger.debug(f'Adding config source of type {source.__class__.__name__} to {self.__class__.__name__}')
         self._config_sources.append(source)
 
     def get_key(self, section_name: str, key_name: str) -> Optional[str]:
