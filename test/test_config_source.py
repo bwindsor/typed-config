@@ -80,3 +80,13 @@ def test_environment_config_source_with_prefix():
 def test_environment_config_source():
     source = EnvironmentConfigSource()
     do_assertions(source)
+
+
+def test_environment_config_source_repr():
+    source = EnvironmentConfigSource()
+    assert repr(source) == "<EnvironmentConfigSource>"
+
+
+def test_dict_config_source_repr():
+    source = DictConfigSource(dict())
+    assert repr(source) == "<DictConfigSource>"

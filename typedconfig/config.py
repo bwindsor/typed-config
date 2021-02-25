@@ -2,7 +2,10 @@
 from typing import TypeVar, List, Optional, Callable, Dict, Type, Union
 from typedconfig.source import ConfigSource
 from itertools import dropwhile, islice, chain
+import logging
 import inspect
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
 U = TypeVar('U')
@@ -242,6 +245,7 @@ class Config:
         """
         if not isinstance(source, ConfigSource):
             raise TypeError("Sources must be subclasses of ConfigSource")
+        logger.debug(f'Adding config source of type {source.__class__.__name__}')
         self._config_sources.append(source)
 
     def get_key(self, section_name: str, key_name: str) -> Optional[str]:
@@ -260,8 +264,10 @@ class Config:
 
         # Go through the config sources until we find one which supplies the requested value
         for source in self._config_sources:
+            logger.debug(f'Looking for config value {section_name}/{key_name} in {source}')
             value = source.get_config_value(section_name, key_name)
             if value is not None:
+                logger.debug(f'Found config value {section_name}/{key_name} in {source}')
                 break
 
         return value

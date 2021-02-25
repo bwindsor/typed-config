@@ -9,9 +9,12 @@ class ConfigSource(ABC):
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
         raise NotImplementedError()
 
+    def __repr__(self):
+        return f'<{self.__class__.__qualname__}>'
+
 
 class EnvironmentConfigSource(ConfigSource):
-    def __init__(self, prefix: str=""):
+    def __init__(self, prefix: str = ""):
         self.prefix = prefix
         if len(self.prefix) > 0:
             self.prefix += "_"
