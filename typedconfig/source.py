@@ -16,11 +16,16 @@ class ConfigSource(ABC):
 class EnvironmentConfigSource(ConfigSource):
     def __init__(self, prefix: str = ""):
         self.prefix = prefix
-        if len(self.prefix) > 0:
-            self.prefix += "_"
+
+        self._prefix = prefix
+        if len(self._prefix) > 0:
+            self._prefix += "_"
 
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
-        return os.environ.get(f"{self.prefix.upper()}{section_name.upper()}_{key_name.upper()}", None)
+        return os.environ.get(f"{self._prefix.upper()}{section_name.upper()}_{key_name.upper()}", None)
+
+    def __repr__(self):
+        return f'<{self.__class__.__qualname__}(prefix={repr(self.prefix)})>'
 
 
 class AbstractIniConfigSource(ConfigSource):
@@ -47,6 +52,9 @@ class IniFileConfigSource(AbstractIniConfigSource):
         elif must_exist:
             raise FileNotFoundError(f"Could not find config file {self.filename}")
         super().__init__(config)
+
+    def __repr__(self):
+        return f"<{self.__class__.__qualname__}(filename='{str(self.filename)}')>"
 
 
 class DictConfigSource(ConfigSource):
