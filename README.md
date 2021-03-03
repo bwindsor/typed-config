@@ -307,16 +307,20 @@ To run with coverage:
 `pytest --cov`
 
 ### Making a release
-You'll need to `pip install twine` if you don't have it.
-
 1. Bump version number in `typedconfig/__version__.py`
-2. Add changes to [CHANGELOG.md](CHANGELOG.md)
-3. Commit your changes and tag with `git tag -a v0.1.0 -m "Summary of changes"`
-4. Clear the dist directory `rm -r dist`
-5. `python setup.py sdist bdist_wheel`
-6. `twine check dist/*`
-7. Upload to the test PyPI `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
-8. Check all looks ok at [https://test.pypi.org/project/typed-config](https://test.pypi.org/project/typed-config)
-9. Upload to live PyPI `twine upload dist/*`
+1. Add changes to [CHANGELOG.md](CHANGELOG.md)
+1. Commit your changes and tag with `git tag -a v0.1.0 -m "Summary of changes"`
+1. Travis will deploy the release to PyPi for you.
+
+#### Staging release
+If you want to check how a release will look on PyPi before tagging and making it live, you can do the following:
+1. `pip install twine` if you don't already have it
+1. Bump version number in `typedconfig/__version__.py`
+1. Clear the dist directory `rm -r dist`
+1. `python setup.py sdist bdist_wheel`
+1. `twine check dist/*`
+1. Upload to the test PyPI `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
+1. Check all looks ok at [https://test.pypi.org/project/typed-config](https://test.pypi.org/project/typed-config)
+1. If all looks good you can git tag and push for deploy to live PyPi
 
 Here is [a good tutorial](https://realpython.com/pypi-publish-python-package) on publishing packages to PyPI.
