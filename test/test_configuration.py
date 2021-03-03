@@ -114,7 +114,7 @@ def test_read(config_dict, expect_error):
     ('3', dict(cast=int), 3),
     ('a', dict(cast=int), ValueError),
 ])
-def test_get_key(prop_val, args, expected_value_or_error):
+def test_key_getter(prop_val, args, expected_value_or_error):
     class SampleConfig(Config):
         prop = key('s', 'prop1', **args)
 
@@ -131,6 +131,16 @@ def test_get_key(prop_val, args, expected_value_or_error):
     else:
         v = config.prop
         assert expected_value_or_error == v
+
+
+def test_get_key():
+    class SampleConfig(Config):
+        prop = key('s', 'prop1')
+
+    config = SampleConfig()
+    config.add_source(DictConfigSource({'s': {'PROP1': 'propval'}}))
+    v = config.get_key('s', 'prop1')
+    assert v == 'propval'
 
 
 def test_caching():
