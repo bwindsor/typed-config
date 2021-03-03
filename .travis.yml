@@ -3,6 +3,8 @@ language: python
 python:
   - "3.6"
   - "3.7"
+  - "3.8"
+  - "3.9"
 # command to install dependencies
 install:
   - pip install -r requirements.txt
@@ -10,4 +12,3 @@ install:
 script:
   - pytest --cov
   - codecov
-
