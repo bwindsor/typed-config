@@ -285,3 +285,16 @@ def test_multiple_group_keys_with_section_decorators():
 
     assert 'v1' == p.c1.k1
     assert 'v2' == p.c2.k2
+
+
+def test_cast_with_default():
+
+    @section('s')
+    class SampleConfig(Config):
+        nullable_key = key(cast=str, required=False, default=None)
+        bool_key = key(cast=bool, required=False, default=False)
+
+    s = SampleConfig()
+    s.add_source(DictConfigSource({}))
+    assert s.nullable_key is None
+    assert s.bool_key is False

@@ -3,7 +3,10 @@ from typing import TypeVar, List, Optional, Callable, Type, Union, cast
 from typedconfig.provider import ConfigProvider
 from typedconfig.source import ConfigSource
 from itertools import dropwhile, islice, chain
+import logging
 import inspect
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
 U = TypeVar('U')
@@ -91,7 +94,7 @@ def key(section_name: str=None,
                 value = default
 
         # If a casting function has been specified then cast to the required data type
-        if cast is not None:
+        if value is not None and cast is not None:
             value = cast(value)
 
         # Cache this for next time if still not none

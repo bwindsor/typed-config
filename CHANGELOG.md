@@ -10,3 +10,10 @@ Fix types for `cast` property of `key`.
 
 ### v0.1.3
 Revert changes from 0.1.2. Parallel was unhelpful.
+
+### v0.1.4
+Add some logging
+Add `__repr__` method to `ConfigSource`
+
+### v0.1.5
+Add more `__repr__` methods in `ConfigSource`

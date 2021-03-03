@@ -1,5 +1,8 @@
+import logging
 from typing import List, Optional, Dict
 from typedconfig.source import ConfigSource
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigProvider:
@@ -36,8 +39,10 @@ class ConfigProvider:
 
         # Go through the config sources until we find one which supplies the requested value
         for source in self._config_sources:
+            logger.debug(f'Looking for config value {section_name}/{key_name} in {source}')
             value = source.get_config_value(section_name, key_name)
             if value is not None:
+                logger.debug(f'Found config value {section_name}/{key_name} in {source}')
                 break
 
         return value
@@ -45,4 +50,5 @@ class ConfigProvider:
     def add_source(self, source: ConfigSource):
         if not isinstance(source, ConfigSource):
             raise TypeError("Sources must be subclasses of ConfigSource")
+        logger.debug(f'Adding config source of type {source.__class__.__name__} to {self.__class__.__name__}')
         self._config_sources.append(source)
