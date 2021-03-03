@@ -1,7 +1,7 @@
 import inspect
 import pytest
 from unittest.mock import MagicMock
-from typedconfig.config import Config, key, section, group_key
+from typedconfig.config import Config, key, section, group_key, ConfigProvider
 from typedconfig.source import DictConfigSource, ConfigSource
 
 
@@ -298,3 +298,17 @@ def test_cast_with_default():
     s.add_source(DictConfigSource({}))
     assert s.nullable_key is None
     assert s.bool_key is False
+
+
+def test_provider_property_read():
+    provider = ConfigProvider()
+    config = ParentConfig(provider=provider)
+    p = config.provider
+    # Check same object is returned
+    assert p is provider
+
+
+def test_provider_property_is_readonly():
+    config = ParentConfig()
+    with pytest.raises(Exception):
+        config.provider = ConfigProvider()
