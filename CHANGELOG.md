@@ -17,3 +17,6 @@ Add `__repr__` method to `ConfigSource`
 
 ### v0.1.5
 Add more `__repr__` methods in `ConfigSource`
+
+### v0.1.6
+Fix: don't cast default value
