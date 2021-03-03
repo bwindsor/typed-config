@@ -155,6 +155,8 @@ class Config:
                  provider: Optional[ConfigProvider]=None):
         if provider is None:
             provider = ConfigProvider(sources=sources)
+        elif not isinstance(provider, ConfigProvider):
+            raise TypeError("provider must be a ConfigProvider object")
         self._section_name = section_name
         self._provider: ConfigProvider = provider
 

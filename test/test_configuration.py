@@ -312,3 +312,23 @@ def test_provider_property_is_readonly():
     config = ParentConfig()
     with pytest.raises(Exception):
         config.provider = ConfigProvider()
+
+
+def test_construct_config_without_provider():
+    sources = [DictConfigSource({})]
+    config = ParentConfig(sources=sources)
+    assert isinstance(config.provider, ConfigProvider)
+    assert config.provider.config_sources == sources
+
+
+def test_construct_config_bad_provider_type():
+    with pytest.raises(TypeError):
+        config = ParentConfig(provider=3)
+
+
+def test_construct_config_with_provider():
+    sources = [DictConfigSource({})]
+    provider = ConfigProvider(sources)
+    config = ParentConfig(sources=sources, provider=provider)
+    assert config.provider is provider
+    assert config.config_sources == sources
