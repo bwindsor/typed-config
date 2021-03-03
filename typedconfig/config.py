@@ -92,7 +92,7 @@ def key(section_name: str=None,
                 value = default
 
         # If a casting function has been specified then cast to the required data type
-        if cast is not None:
+        if value is not None and cast is not None:
             value = cast(value)
 
         # Cache this for next time if still not none
