@@ -239,6 +239,38 @@ class Config:
         """
         self._provider.add_source(source)
 
+    def replace_source(self, old_source: ConfigSource, new_source: ConfigSource):
+        """
+        Replaces a ConfigSource with a new one. This is useful for example if you modify a config file, so want
+        to swap a ConfigSource which reads from a file on initialisation for a new one.
+        This does not clear the cache. To access new values you also need to call clear_cache.
+
+        Parameters
+        ----------
+        old_source: The old config source to be replaced
+        new_source: The config source to replace it with
+
+        Returns
+        -------
+        None
+        """
+        self._provider.replace_source(old_source, new_source)
+
+    def set_sources(self, sources: List[ConfigSource]):
+        """
+        Completely replaces the set of ConfigSources with a new set.
+
+        This does not clear the cache. To access new values you also need to call clear_cache
+        Parameters
+        ----------
+        sources: List of ConfigSource subclasses to supply the configuration
+
+        Returns
+        -------
+        None
+        """
+        self._provider.set_sources(sources)
+
     def get_key(self, section_name: str, key_name: str) -> Optional[str]:
         """
         Gets a string configuration key from available sources

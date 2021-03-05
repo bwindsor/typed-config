@@ -290,11 +290,33 @@ config = AppConfig(sources=[my_first_source, my_second_source])
 config.read()
 ```
 
-The below is bad practice, but if for some reason you do add further config sources after it's been read, or need to refresh the config for some reason, you'll need to clear any cached values in order to force re-reading of the config. You can do this by
+
+### Modifying or refreshing configuration after it has been loaded
+In general it is bad practice to modify configuration at runtime because the configuration for your program should be fixed for the duration of it.  However, there are cases where it may be necessary.
+
+To completely replace the set of config sources, you can use
+```python
+config = AppConfig(sources=[my_first_source, my_second_source])
+config.set_sources([my_first_new_source, my_second_new_source])
+```
+
+To replace a specific config source, for example because a config file has changed and you need to re-read it from disk, you can use `replace_source`:
+```python
+from typedconfig.source import IniFileConfigSource
+original_source = IniFileConfigSource("config.cfg")
+config = AppConfig(sources=[source])
+# Now say you change the contents to config.cfg and need to read it again
+new_source = IniFileConfigSource("config.cfg")  # re-reads file during construction
+config.replace_source(original_source, new_source)
+```
+
+**Important**: if you add or modify the config sources the config has been read, or need to refresh the config for some reason, you'll need to clear any cached values in order to force the config to be fetched from the `ConfigSource`s again. You can do this by
 ```python
 config.clear_cache()
 config.read()          # Read all configuration values again
 ```
+
+
 
 ### Supplied Config Sources
 #### `EnvironmentConfigSource`

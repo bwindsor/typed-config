@@ -14,8 +14,8 @@ class ConfigProvider:
         self._cache: Dict[str, Dict[str, str]] = {}
         self._config_sources: List[ConfigSource] = []
         if sources is not None:
-            for s in sources:
-                self.add_source(s)
+            for source in sources:
+                self.add_source(source)
 
     def add_to_cache(self, section_name: str, key_name: str, value) -> None:
         if section_name not in self._cache:
@@ -52,3 +52,19 @@ class ConfigProvider:
             raise TypeError("Sources must be subclasses of ConfigSource")
         logger.debug(f'Adding config source of type {source.__class__.__name__} to {self.__class__.__name__}')
         self._config_sources.append(source)
+
+    def set_sources(self, sources: List[ConfigSource]):
+        self._config_sources.clear()
+        for source in sources:
+            self.add_source(source)
+
+    def replace_source(self, old_source: ConfigSource, new_source: ConfigSource):
+        if not isinstance(new_source, ConfigSource):
+            raise TypeError("Sources must be subclasses of ConfigSource")
+        logger.debug(f'Replacing config source of type {old_source.__class__.__name__} with {new_source.__class__.__name__}')
+        for i, source in enumerate(self.config_sources):
+            if source is old_source:
+                self.config_sources[i] = new_source
+                return
+
+        raise ValueError("ConfigProvider did not find the supplied old source to replace: %s", old_source)

@@ -342,3 +342,46 @@ def test_construct_config_with_provider():
     config = ParentConfig(sources=sources, provider=provider)
     assert config.provider is provider
     assert config.config_sources == sources
+
+
+def test_replace_source():
+    sources = [DictConfigSource({}), DictConfigSource({})]
+    config = Config(sources=sources)
+
+    assert config.config_sources == sources
+    assert config.config_sources[0] is sources[0]
+    assert config.config_sources[1] is sources[1]
+
+    replacement_source = DictConfigSource({})
+    config.replace_source(sources[0], replacement_source)
+
+    assert config.config_sources == [replacement_source, sources[1]]
+    assert config.config_sources[0] is replacement_source
+    assert config.config_sources[1] is sources[1]
+
+
+def test_replace_source_not_found():
+    source_a = DictConfigSource({})
+    source_b = DictConfigSource({})
+    config = Config()
+    config.add_source(source_a)
+    with pytest.raises(ValueError):
+        config.replace_source(source_b, source_a)
+
+
+def test_replace_source_bad_type():
+    source = DictConfigSource({})
+    config = Config(sources=[source])
+    with pytest.raises(TypeError):
+        bad_type: ConfigSource = 3
+        config.replace_source(source, bad_type)
+
+
+def test_set_sources():
+    old_sources = [DictConfigSource({})]
+    new_sources = [DictConfigSource({}), DictConfigSource({})]
+    config = Config(sources=old_sources)
+    config.set_sources(new_sources)
+    assert len(config.config_sources) == 2
+    assert config.config_sources[0] is new_sources[0]
+    assert config.config_sources[1] is new_sources[1]
