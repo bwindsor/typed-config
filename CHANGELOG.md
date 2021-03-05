@@ -20,3 +20,6 @@ Add more `__repr__` methods in `ConfigSource`
 
 ### v0.1.6
 Fix: don't cast default value
+
+### v0.2.0
+Refactor to use a `ConfigProvider` which can be shared as a provider between all `Config` objects
