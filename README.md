@@ -171,6 +171,109 @@ In this example we have three ways of casting:
 3. Defining a custom function. Your function should take one string input and return one output of any type. To get type hint, just make sure your function has type annotations.
 4. Using a lambda expression. The type inference may or may not work depending on your expression, so if it doesn't just write it as a function with type annotations.
 
+### Extending configuration using shared ConfigProvider
+
+Multiple application modules may use different configuration schemes while sharing the same configuration source. Analogously, various `Config` classes may provide different view of the same configuration data, sharing the same `ConfigProvider`.
+
+```python
+# app/config.py
+from typedconfig.provider import ConfigProvider
+from typedconfig.source import EnvironmentConfigSource, IniFileConfigSource
+
+provider = ConfigProvider()
+provider.add_source(EnvironmentConfigSource(prefix="EXAMPLE"))
+provider.add_source(IniFileConfigSource("config.cfg"))
+
+__all__ = ["provider"]
+```
+```python
+# app/database/config.py
+from typedconfig import Config, key, section
+from app.config import provider
+
+@section('database')
+class DatabaseConfig(Config):
+    host = key(cast=str)
+    port = key(cast=int)
+
+database_config = DatabaseConfig(provider=provider)
+```
+```python
+# app/algorithm/config.py
+from typedconfig import Config, key, section
+from app.config import provider
+
+@section('algorithm')
+class AlgorithmConfig(Config):
+    max_value = key(cast=float)
+    min_value = key(cast=float)
+
+algorithm_config = AlgorithmConfig(provider=provider)
+```
+
+Shared configuration provider can be used by plugins, which may need to declare additional configuration sections within the same configuration files as the main application.  Let's assume we have `[database]` section used by main application and `[app_extension]` that provides 3rd party plugin configuration:
+
+```ini
+[database]
+host = 127.0.0.1
+port = 2000
+
+[app_extension]
+api_key = secret
+```
+
+e.g. `app/config.py` may look like that:
+
+```python
+from typedconfig import Config, key, section, group_key
+from typedconfig.source import EnvironmentConfigSource, IniFileConfigSource
+
+@section('database')
+class DatabaseConfig(Config):
+    """Database configuration"""
+    host = key(cast=str)
+    port = key(cast=int)
+
+class ApplicationConfig(Config):
+    """Main configuration object"""
+    database = group_key(DatabaseConfig)
+
+app_config = ApplicationConfig(sources=[
+    EnvironmentConfigSource(),
+    IniFileConfigSource("config.cfg")
+])
+```
+
+and plugin can read additional sections by using the same configuration provider as main application config.
+
+e.g. `plugin/config.py`:
+```python
+from typedconfig import Config, key, section, group_key
+
+from app.config import ApplicationConfig, app_config
+
+@section('app_extension')
+class ExtensionConfig(Config):
+    """Extension configuration"""
+    api_key = key(cast=str)
+
+# ExtendedAppConfig extends ApplicationConfig 
+# so original sections are also included
+class ExtendedAppConfig(ApplicationConfig):
+    """Extended main configuration object"""
+    app_extension = group_key(ExtensionConfig)
+    
+# ExtendedAppConfig uses the same provider as the main app_config
+extended_config = ExtendedAppConfig(provider=app_config.provider)
+```
+```python
+from plugin.config import extended_config
+
+# Plugin can access both main and extra sections
+print(extended_config.app_extension.api_key)
+print(extended_config.database.host)
+```
+
 ## Configuration Sources
 Configuration sources are how your main `Config` class knows where to get its data from. These are totally extensible so that you can read in your configuration from wherever you like - from a database, from S3, anywhere that you can write code for.
 
