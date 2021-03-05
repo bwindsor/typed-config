@@ -23,3 +23,6 @@ Fix: don't cast default value
 
 ### v0.2.0
 Refactor to use a `ConfigProvider` which can be shared as a provider between all `Config` objects
+
+### v0.2.1
+Add `replace_source` and `set_sources` methods on `Config` and `ConfigProvider` for easier manipulation of sources
