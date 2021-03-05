@@ -1,7 +1,7 @@
 import inspect
 import pytest
 from unittest.mock import MagicMock
-from typedconfig.config import Config, key, section, group_key
+from typedconfig.config import Config, key, section, group_key, ConfigProvider
 from typedconfig.source import DictConfigSource, ConfigSource
 
 
@@ -114,7 +114,7 @@ def test_read(config_dict, expect_error):
     ('3', dict(cast=int), 3),
     ('a', dict(cast=int), ValueError),
 ])
-def test_get_key(prop_val, args, expected_value_or_error):
+def test_key_getter(prop_val, args, expected_value_or_error):
     class SampleConfig(Config):
         prop = key('s', 'prop1', **args)
 
@@ -131,6 +131,16 @@ def test_get_key(prop_val, args, expected_value_or_error):
     else:
         v = config.prop
         assert expected_value_or_error == v
+
+
+def test_get_key():
+    class SampleConfig(Config):
+        prop = key('s', 'prop1')
+
+    config = SampleConfig()
+    config.add_source(DictConfigSource({'s': {'PROP1': 'propval'}}))
+    v = config.get_key('s', 'prop1')
+    assert v == 'propval'
 
 
 def test_caching():
@@ -298,3 +308,37 @@ def test_cast_with_default():
     s.add_source(DictConfigSource({}))
     assert s.nullable_key is None
     assert s.bool_key is False
+
+
+def test_provider_property_read():
+    provider = ConfigProvider()
+    config = ParentConfig(provider=provider)
+    p = config.provider
+    # Check same object is returned
+    assert p is provider
+
+
+def test_provider_property_is_readonly():
+    config = ParentConfig()
+    with pytest.raises(Exception):
+        config.provider = ConfigProvider()
+
+
+def test_construct_config_without_provider():
+    sources = [DictConfigSource({})]
+    config = ParentConfig(sources=sources)
+    assert isinstance(config.provider, ConfigProvider)
+    assert config.provider.config_sources == sources
+
+
+def test_construct_config_bad_provider_type():
+    with pytest.raises(TypeError):
+        config = ParentConfig(provider=3)
+
+
+def test_construct_config_with_provider():
+    sources = [DictConfigSource({})]
+    provider = ConfigProvider(sources)
+    config = ParentConfig(sources=sources, provider=provider)
+    assert config.provider is provider
+    assert config.config_sources == sources

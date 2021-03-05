@@ -1,5 +1,6 @@
 # This future import allows methods of Config to use Config as their return type
-from typing import TypeVar, List, Optional, Callable, Dict, Type, Union
+from typing import TypeVar, List, Optional, Callable, Type, Union, cast
+from typedconfig.provider import ConfigProvider
 from typedconfig.source import ConfigSource
 from itertools import dropwhile, islice, chain
 import logging
@@ -77,17 +78,18 @@ def key(section_name: str=None,
             _mutable_state['key_name'] = resolved_key_name.upper()
 
         # If value is cached, just use the cached value
-        cached_value = self._get_from_cache(resolved_section_name, _mutable_state['key_name'])
+        cached_value = self._provider.get_from_cache(resolved_section_name, _mutable_state['key_name'])
         if cached_value is not None:
             return cached_value
 
-        value = self.get_key(resolved_section_name, _mutable_state['key_name'])
+        value = self._provider.get_key(resolved_section_name, _mutable_state['key_name'])
 
         # If we still haven't found a config value and this parameter is required,
         # raise an exception, otherwise use the default
         if value is None:
             if required:
-                raise KeyError("Config parameter {0}.{1} not found".format(resolved_section_name, _mutable_state['key_name']))
+                raise KeyError("Config parameter {0}.{1} not found".format(resolved_section_name,
+                                                                           _mutable_state['key_name']))
             else:
                 value = default
 
@@ -97,7 +99,7 @@ def key(section_name: str=None,
 
         # Cache this for next time if still not none
         if value is not None:
-            self._add_to_cache(resolved_section_name, _mutable_state['key_name'], value)
+            self._provider.add_to_cache(resolved_section_name, _mutable_state['key_name'], value)
 
         return value
 
@@ -124,7 +126,7 @@ def group_key(cls: Callable[[], U]) -> U:
         function_name = cls.__name__
         attr_name = '_' + function_name
         if not hasattr(self, attr_name):
-            setattr(self, attr_name, cls())
+            setattr(self, attr_name, cast(Type[Config], cls)(provider=self._provider))
         return getattr(self, attr_name)
 
     setattr(wrapped_f.fget, Config._composed_config_registration_string, True)
@@ -149,27 +151,22 @@ class Config:
     _composed_config_registration_string = '__composed_config__'
     _config_key_registration_string = '__config_key__'
 
-    def __init__(self, section_name=None, sources: List[ConfigSource]=None):
+    def __init__(self, section_name=None, sources: List[ConfigSource]=None,
+                 provider: Optional[ConfigProvider]=None):
+        if provider is None:
+            provider = ConfigProvider(sources=sources)
+        elif not isinstance(provider, ConfigProvider):
+            raise TypeError("provider must be a ConfigProvider object")
         self._section_name = section_name
-        self._cache: Dict[str, Dict[str, str]] = {}
-        self._config_sources: List[ConfigSource] = []
-        if sources is not None:
-            for s in sources:
-                self.add_source(s)
-
-    def _add_to_cache(self, section_name: str, key_name: str, value):
-        if section_name not in self._cache:
-            self._cache[section_name] = {}
-        self._cache[section_name][key_name] = value
-
-    def _get_from_cache(self, section_name: str, key_name: str):
-        if section_name not in self._cache:
-            return None
-        return self._cache[section_name].get(key_name, None)
+        self._provider: ConfigProvider = provider
 
     @property
     def config_sources(self) -> List[ConfigSource]:
-        return self._config_sources
+        return self._provider.config_sources
+
+    @property
+    def provider(self) -> ConfigProvider:
+        return self._provider
 
     def get_registered_properties(self) -> List[str]:
         """
@@ -218,7 +215,6 @@ class Config:
         for f in registered_properties:
             getattr(self, f)
 
-    @_propagate_to_children()
     def clear_cache(self):
         """
         Config values are cached the first time they are requested. This means that if, for example, config values are
@@ -227,11 +223,8 @@ class Config:
         -------
         None
         """
-        # Because we have a dict config source referencing our cache, we can't just replace the reference,
-        # we need to keep the same reference but clear all keys from it
-        self._cache.clear()
+        self._provider.clear_cache()
 
-    @_propagate_to_children()
     def add_source(self, source: ConfigSource):
         """
         Adds a configuration source
@@ -243,10 +236,7 @@ class Config:
         -------
         None
         """
-        if not isinstance(source, ConfigSource):
-            raise TypeError("Sources must be subclasses of ConfigSource")
-        logger.debug(f'Adding config source of type {source.__class__.__name__} to {self.__class__.__name__}')
-        self._config_sources.append(source)
+        self._provider.add_source(source)
 
     def get_key(self, section_name: str, key_name: str) -> Optional[str]:
         """
@@ -260,14 +250,4 @@ class Config:
         -------
         value: the loaded config value as a string
         """
-        value = None
-
-        # Go through the config sources until we find one which supplies the requested value
-        for source in self._config_sources:
-            logger.debug(f'Looking for config value {section_name}/{key_name} in {source}')
-            value = source.get_config_value(section_name, key_name)
-            if value is not None:
-                logger.debug(f'Found config value {section_name}/{key_name} in {source}')
-                break
-
-        return value
+        return self._provider.get_key(section_name, key_name)
