@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 from configparser import ConfigParser
 
 
@@ -44,7 +44,7 @@ class IniStringConfigSource(AbstractIniConfigSource):
 
 
 class IniFileConfigSource(AbstractIniConfigSource):
-    def __init__(self, filename: str, encoding: str=None, must_exist=True):
+    def __init__(self, filename: str, encoding: str = None, must_exist: bool = True):
         self.filename = filename
         config = ConfigParser()
         if os.path.exists(self.filename):

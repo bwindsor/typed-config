@@ -1,5 +1,6 @@
 # This future import allows methods of Config to use Config as their return type
-from typing import TypeVar, List, Optional, Callable, Type, Union, cast
+import typing
+from typing import TypeVar, List, Optional, Callable, Type, Union
 from typedconfig.provider import ConfigProvider
 from typedconfig.source import ConfigSource
 from itertools import dropwhile, islice, chain
@@ -24,11 +25,11 @@ def _propagate_to_children():
     return propagate_to_children
 
 
-def key(section_name: str=None,
-        key_name: str=None,
-        required: bool=True,
-        cast: Callable[[Union[T, str]], T]=None,
-        default: T=None) -> T:
+def key(section_name: str = None,
+        key_name: str = None,
+        required: bool = True,
+        cast: Callable[[Union[T, str]], T] = None,
+        default: T = None) -> T:
     """
     Provides a getter for a configuration key
     Parameters
@@ -126,7 +127,7 @@ def group_key(cls: Callable[[], U]) -> U:
         function_name = cls.__name__
         attr_name = '_' + function_name
         if not hasattr(self, attr_name):
-            setattr(self, attr_name, cast(Type[Config], cls)(provider=self._provider))
+            setattr(self, attr_name, typing.cast(Type[Config], cls)(provider=self._provider))
         return getattr(self, attr_name)
 
     setattr(wrapped_f.fget, Config._composed_config_registration_string, True)
@@ -151,8 +152,8 @@ class Config:
     _composed_config_registration_string = '__composed_config__'
     _config_key_registration_string = '__config_key__'
 
-    def __init__(self, section_name=None, sources: List[ConfigSource]=None,
-                 provider: Optional[ConfigProvider]=None):
+    def __init__(self, section_name=None, sources: List[ConfigSource] = None,
+                 provider: Optional[ConfigProvider] = None):
         if provider is None:
             provider = ConfigProvider(sources=sources)
         elif not isinstance(provider, ConfigProvider):
