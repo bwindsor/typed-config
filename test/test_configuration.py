@@ -231,6 +231,23 @@ def test_key_name_inference():
     assert 'def' == c.prop2
 
 
+def test_key_name_inference_multi_level():
+    class SampleConfigBase(Config):
+        prop1 = key(section_name='s')
+
+    class SampleConfig(SampleConfigBase):
+        prop2 = key(section_name='s')
+
+    c = SampleConfig()
+
+    c.add_source(DictConfigSource({'s': dict(
+        PROP1='abc',
+        PROP2='def',
+    )}))
+    assert 'abc' == c.prop1
+    assert 'def' == c.prop2
+
+
 def test_least_verbose_config():
     @section('X')
     class SampleConfig(Config):
@@ -385,3 +402,106 @@ def test_set_sources():
     assert len(config.config_sources) == 2
     assert config.config_sources[0] is new_sources[0]
     assert config.config_sources[1] is new_sources[1]
+
+
+def test_property_is_read_only():
+    config = GrandchildConfig()
+    with pytest.raises(AttributeError):
+        config.prop1 = 'a'
+
+
+def test_post_read_hook():
+    @section('s')
+    class SampleConfig(Config):
+        prop1 = key(cast=str)
+        prop2 = key(cast=str, required=False)
+
+        def post_read_hook(self) -> dict:
+            return dict(prop2='x' + self.prop1)
+
+    config_source = DictConfigSource({
+        's': {
+            'prop1': 'a',
+        }
+    })
+    config = SampleConfig(sources=[config_source])
+    config.read()
+
+    assert config.prop1 == 'a'
+    assert config.prop2 == 'xa'
+
+
+def test_post_read_hook_different_key_name():
+    @section('s')
+    class SampleConfig(Config):
+        prop1 = key('s', 'key1', cast=str)
+        prop2 = key('s', 'key2', cast=str, required=False)
+
+        def post_read_hook(self) -> dict:
+            return dict(prop2='x' + self.prop1)
+
+    config_source = DictConfigSource({
+        's': {
+            'key1': 'a',
+        }
+    })
+    config = SampleConfig(sources=[config_source])
+    config.read()
+
+    assert config.prop1 == 'a'
+    assert config.prop2 == 'xa'
+
+
+def test_post_read_hook_modify_child():
+    class SampleChildConfig(Config):
+        prop3 = key('s', 'key3', cast=str)
+
+    class SampleConfig(Config):
+        prop3 = group_key(SampleChildConfig)
+
+        def post_read_hook(self) -> dict:
+            return dict(
+                prop3=dict(
+                    prop3='new_value'
+                )
+            )
+
+    config_source = DictConfigSource({
+        's': {
+            'key3': 'b',
+        }
+    })
+    config = SampleConfig(sources=[config_source])
+    config.read()
+
+    assert config.prop3.prop3 == 'new_value'
+
+
+def test_post_read_hook_child_takes_priority():
+    class SampleChildConfig(Config):
+        prop3 = key('s', 'key3', cast=str)
+
+        def post_read_hook(self) -> dict:
+            return dict(
+                prop3='child_new_value'
+            )
+
+    class SampleConfig(Config):
+        prop3 = group_key(SampleChildConfig)
+
+        def post_read_hook(self) -> dict:
+            return dict(
+                prop3=dict(
+                    prop3='new_value'
+                )
+            )
+
+    config_source = DictConfigSource({
+        's': {
+            'key3': 'b',
+        }
+    })
+    config = SampleConfig(sources=[config_source])
+    config.read()
+
+    assert config.prop3.prop3 == 'child_new_value'

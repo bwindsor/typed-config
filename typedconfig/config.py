@@ -1,9 +1,8 @@
 # This future import allows methods of Config to use Config as their return type
 import typing
-from typing import TypeVar, List, Optional, Callable, Type, Union
+from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any
 from typedconfig.provider import ConfigProvider
 from typedconfig.source import ConfigSource
-from itertools import dropwhile, islice, chain
 import logging
 import inspect
 
@@ -58,39 +57,25 @@ def key(section_name: str = None,
         value: the parsed config value
         """
 
-        if section_name is None:
-            resolved_section_name = self._section_name
-            if resolved_section_name is None:
-                raise ValueError(
-                    "Section name was not specified by the key function or the section class decorator.")
-        else:
-            resolved_section_name = section_name
+        resolved_section_name = self._resolve_section_name(section_name)
 
-        if _mutable_state['key_name'] is None:
-            def base_dict_items(cls):
-                base = cls
-                while True:
-                    yield base.__dict__.items()
-                    base = base.__base__
-                    if base is None:
-                        break
-            resolved_key_name = list(islice(dropwhile(
-                lambda x: x[1] is not getter, chain.from_iterable(base_dict_items(self.__class__))), 1))[0][0]
-            _mutable_state['key_name'] = resolved_key_name.upper()
+        resolved_key_name = _mutable_state['key_name']
+        if resolved_key_name is None:
+            resolved_key_name = self._resolve_key_name(getter)
+            _mutable_state['key_name'] = resolved_key_name
 
         # If value is cached, just use the cached value
-        cached_value = self._provider.get_from_cache(resolved_section_name, _mutable_state['key_name'])
+        cached_value = self._provider.get_from_cache(resolved_section_name, resolved_key_name)
         if cached_value is not None:
             return cached_value
 
-        value = self._provider.get_key(resolved_section_name, _mutable_state['key_name'])
+        value = self._provider.get_key(resolved_section_name, resolved_key_name)
 
         # If we still haven't found a config value and this parameter is required,
         # raise an exception, otherwise use the default
         if value is None:
             if required:
-                raise KeyError("Config parameter {0}.{1} not found".format(resolved_section_name,
-                                                                           _mutable_state['key_name']))
+                raise KeyError("Config parameter {0}.{1} not found".format(resolved_section_name, resolved_key_name))
             else:
                 value = default
 
@@ -100,11 +85,13 @@ def key(section_name: str = None,
 
         # Cache this for next time if still not none
         if value is not None:
-            self._provider.add_to_cache(resolved_section_name, _mutable_state['key_name'], value)
+            self._provider.add_to_cache(resolved_section_name, resolved_key_name, value)
 
         return value
 
     setattr(getter.fget, Config._config_key_registration_string, True)
+    setattr(getter.fget, Config._config_key_key_name_string, key_name.upper() if key_name is not None else None)
+    setattr(getter.fget, Config._config_key_section_name_string, section_name)
     return getter
 
 
@@ -151,6 +138,8 @@ class Config:
     """
     _composed_config_registration_string = '__composed_config__'
     _config_key_registration_string = '__config_key__'
+    _config_key_key_name_string = '__config_key_key_name__'
+    _config_key_section_name_string = '__config_key_section_name__'
 
     def __init__(self, section_name=None, sources: List[ConfigSource] = None,
                  provider: Optional[ConfigProvider] = None):
@@ -176,9 +165,30 @@ class Config:
         -------
         A list of strings giving the names of the registered properties/methods
         """
-        all_properties = inspect.getmembers(self.__class__, predicate=lambda x: self.is_member_registered(
-            x, Config._config_key_registration_string))
+        all_properties = self._get_registered_properties_with_values()
         return [f[0] for f in all_properties]
+
+    def _get_registered_properties_with_values(self) -> List[Tuple[str, Any]]:
+        return inspect.getmembers(self.__class__, predicate=lambda x: self.is_member_registered(
+            x, Config._config_key_registration_string))
+
+    def _resolve_section_name(self, key_section_name: Optional[str]) -> str:
+        if key_section_name is not None:
+            return key_section_name
+
+        if self._section_name is None:
+            raise ValueError(
+                "Section name was not specified by the key function or the section class decorator.")
+        return self._section_name
+
+    def _resolve_key_name(self, property_object: property) -> str:
+        key_key_name = getattr(property_object.fget, self._config_key_key_name_string)
+        if key_key_name is not None:
+            return key_key_name
+
+        members = inspect.getmembers(self.__class__, lambda x: x is property_object)
+        assert len(members) == 1
+        return members[0][0].upper()
 
     @staticmethod
     def is_member_registered(member, reg_string: str):
@@ -215,6 +225,39 @@ class Config:
         registered_properties = self.get_registered_properties()
         for f in registered_properties:
             getattr(self, f)
+
+        self._post_read(self.post_read_hook())
+
+    def post_read_hook(self) -> dict:
+        """
+        This method can be overridden to modify config values after read() is called.
+        Returns
+        -------
+        A dict of key-value pairs containing new configuration values for key() items in this Config class
+        """
+        return dict()
+
+    def _post_read(self, updated_values: dict):
+        registered_properties = set(self.get_registered_properties())
+
+        for k, v in updated_values.items():
+            if isinstance(v, dict):
+                property_object = getattr(self.__class__, k)
+                if not self.is_member_registered(property_object, self._composed_config_registration_string):
+                    raise KeyError(f"{k} is not a valid typed config group_key() of {self.__class__.__name__}")
+                child_config = getattr(self, k)
+                child_config._post_read(v)
+            else:
+                if k not in registered_properties:
+                    raise KeyError(f"{k} is not a valid attribute of {self.__class__.__name__}")
+
+                property_object: property = getattr(self.__class__, k)
+                if not self.is_member_registered(property_object, self._config_key_registration_string):
+                    raise KeyError(f"{k} is not a valid typed config key() object of {self.__class__.__name__}")
+
+                section_name = self._resolve_section_name(getattr(property_object.fget, self._config_key_section_name_string))
+                key_name = self._resolve_key_name(property_object)
+                self._provider.add_to_cache(section_name, key_name, v)
 
     def clear_cache(self):
         """
