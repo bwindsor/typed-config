@@ -505,3 +505,16 @@ def test_post_read_hook_child_takes_priority():
     config.read()
 
     assert config.prop3.prop3 == 'child_new_value'
+
+
+def test_config_repr():
+    class SampleChildConfig(Config):
+        a = key(section_name='test', cast=str, required=False, default='A')
+
+    @section('test')
+    class SampleConfig(Config):
+        b = key(cast=str, required=False, default='B')
+        child = group_key(SampleChildConfig)
+
+    config = SampleConfig()
+    assert repr(config) == "SampleConfig(b='B', child=SampleChildConfig(a='A'))"
