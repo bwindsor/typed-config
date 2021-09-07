@@ -385,3 +385,16 @@ def test_set_sources():
     assert len(config.config_sources) == 2
     assert config.config_sources[0] is new_sources[0]
     assert config.config_sources[1] is new_sources[1]
+
+
+def test_config_repr():
+    class SampleChildConfig(Config):
+        a = key(section_name='test', cast=str, required=False, default='A')
+
+    @section('test')
+    class SampleConfig(Config):
+        b = key(cast=str, required=False, default='B')
+        child = group_key(SampleChildConfig)
+
+    config = SampleConfig()
+    assert repr(config) == "SampleConfig(b='B', child=SampleChildConfig(a='A'))"

@@ -140,6 +140,7 @@ def section(section_name: str) -> Callable[[T], T]:
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, section_name=section_name, **kwargs)
         SectionConfig.__name__ = cls.__name__
+        SectionConfig.__qualname__ = cls.__qualname__
 
         return SectionConfig
     return _section
@@ -160,6 +161,18 @@ class Config:
             raise TypeError("provider must be a ConfigProvider object")
         self._section_name = section_name
         self._provider: ConfigProvider = provider
+
+    def __repr__(self):
+        key_names = self.get_registered_properties()
+        group_key_info = inspect.getmembers(self.__class__, predicate=lambda x: self.is_member_registered(
+            x, Config._composed_config_registration_string))
+
+        joined_repr = ', '.join(chain(
+            (f"{k}={getattr(self, k)!r}" for k in key_names),
+            (f"{k}={getattr(self, k)!r}" for k, _ in group_key_info)
+        ))
+
+        return f"{self.__class__.__name__}({joined_repr})"
 
     @property
     def config_sources(self) -> List[ConfigSource]:
