@@ -26,3 +26,7 @@ Refactor to use a `ConfigProvider` which can be shared as a provider between all
 
 ### v0.2.1
 Add `replace_source` and `set_sources` methods on `Config` and `ConfigProvider` for easier manipulation of sources
+
+### v0.2.2
+* Fix typing on `@section` decorator. This was previously preventing IDE autocompletion. The return type of the decorator now uses a generic to indicate that it returns the same type as it is passed. This means that whether or not it is passed a `Config` subclass is no longer type checked, but it means that the returned class has all the correct properties on it, which is more important. 
+* Add basic `repr` function to `Config`
