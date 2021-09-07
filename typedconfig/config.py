@@ -134,8 +134,8 @@ def group_key(cls: Callable[[], U]) -> U:
     return wrapped_f
 
 
-def section(section_name: str) -> Callable[[Type['Config']], Type['Config']]:
-    def _section(cls: Type[Config]):
+def section(section_name: str) -> Callable[[T], T]:
+    def _section(cls: T) -> T:
         class SectionConfig(cls):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, section_name=section_name, **kwargs)
