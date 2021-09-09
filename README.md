@@ -171,6 +171,9 @@ In this example we have three ways of casting:
 3. Defining a custom function. Your function should take one string input and return one output of any type. To get type hint, just make sure your function has type annotations.
 4. Using a lambda expression. The type inference may or may not work depending on your expression, so if it doesn't just write it as a function with type annotations.
 
+### Validation
+You can validate what has been supplied by providing a custom `cast` function to a `key`, which validates the configuration value in addition to parsing it.
+
 ### Extending configuration using shared ConfigProvider
 
 Multiple application modules may use different configuration schemes while sharing the same configuration source. Analogously, various `Config` classes may provide different view of the same configuration data, sharing the same `ConfigProvider`.
@@ -272,6 +275,51 @@ from plugin.config import extended_config
 # Plugin can access both main and extra sections
 print(extended_config.app_extension.api_key)
 print(extended_config.database.host)
+```
+
+### Configuration variables which depend on other configuration variables
+Sometimes you may wish to set the value of some configuration variables based on others. You may also wish to validate some variables, for example allowed values may be different depending on the value of another config variable. For this you can add a `post_read_hook`.
+
+The default implementation of `post_read_hook` returns an empty `dict`. You can override this by implementing your own `post_read_hook` method. It should receive only `self` as an input, and return a `dict`. This `dict` should be a simple mapping from config keys to values. For hierarchical configurations, you can nest the dictionaries. If you provide a `post_read_hook` in both a parent and a child class which both make changes to the same keys (don't do this) then the values returned by the child method will overwrite those by the parent.
+
+This hook is called whenever you call the `read` method. If you use lazy loading and skip calling the `read` method, you cannot use this hook.
+```python
+# my_app/config.py
+from typedconfig import Config, key, group_key, section
+from typedconfig.source import EnvironmentConfigSource
+
+@section('child')
+class ChildConfig(Config):
+    http_port_plus_one = key(cast=int, required=False)
+
+@section('app')
+class AppConfig(Config):
+    use_https = key(cast=bool)
+    http_port = key(key_name='port', cast=int, required=False)
+    child = group_key(ChildConfig)
+    
+    def post_read_hook(self) -> dict:
+        config_updates = dict()
+        # If the port has not been provided, set it based on the value of use_https
+        if self.http_port is None:
+            config_updates.update(http_port=443 if self.use_https else 80)
+        else:
+            # Modify child config
+            config_updates.update(child=dict(http_port_plus_one=self.http_port + 1))
+            
+        # Validate that the port number has a sensible value
+        # It is recommended to do validation inside the cast method for individual keys, however for dependent keys it can be useful here
+        if self.http_port is not None:
+            if self.use_https:
+                assert self.http_port in [443, 444, 445]
+            else:
+                assert self.http_port in [80, 81, 82]
+
+        return config_updates
+            
+config = AppConfig()
+config.add_source(EnvironmentConfigSource())
+config.read()
 ```
 
 ## Configuration Sources
