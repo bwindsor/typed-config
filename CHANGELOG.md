@@ -39,3 +39,6 @@ Version bump to build after move from travis-ci.org to travis-ci.com
 
 ### v0.2.5
 Version bump to build after move from travis-ci.org to travis-ci.com
+
+### v0.3.0
+Add `post_read_hook` method which can be added to `Config` subclasses to allow parts of the config to be modified after it has been fully loaded
