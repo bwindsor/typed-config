@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from configparser import ConfigParser
 
 
@@ -8,6 +8,11 @@ class ConfigSource(ABC):
     @abstractmethod
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
         raise NotImplementedError()
+
+    def get_hierarchical_config_value(self, section_hierarchy: List[str], key_name: str) -> Optional[str]:
+        # Default implementation only works with hierarchy of the correct depth
+        assert len(section_hierarchy) == 1
+        return self.get_config_value(section_hierarchy[0], key_name)
 
     def __repr__(self):
         return f'<{self.__class__.__qualname__}>'
