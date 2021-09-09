@@ -112,8 +112,7 @@ def group_key(cls: Callable[[], U]) -> U:
 
     @property
     def wrapped_f(self):
-        function_name = cls.__name__
-        attr_name = '_' + function_name
+        attr_name = '_' + self._get_property_name_from_object(wrapped_f)
         if not hasattr(self, attr_name):
             setattr(self, attr_name, typing.cast(Type[Config], cls)(provider=self._provider))
         return getattr(self, attr_name)
@@ -200,6 +199,9 @@ class Config:
         if key_key_name is not None:
             return key_key_name
 
+        return self._get_property_name_from_object(property_object)
+
+    def _get_property_name_from_object(self, property_object: property) -> str:
         members = inspect.getmembers(self.__class__, lambda x: x is property_object)
         assert len(members) == 1
         return members[0][0].upper()

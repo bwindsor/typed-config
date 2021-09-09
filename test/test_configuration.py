@@ -82,6 +82,24 @@ def test_register_composed_config():
     assert sub_configs[1] is sub_configs_2[1]
 
 
+def test_reuse_child_config():
+    class SampleChildConfig(Config):
+        pass
+
+    class SampleConfig(Config):
+        composed_1 = group_key(SampleChildConfig)
+        composed_2 = group_key(SampleChildConfig)
+
+    config = SampleConfig()
+    config.read()
+
+    sub_configs = config.get_registered_composed_config()
+    assert len(sub_configs) == 2
+    assert isinstance(sub_configs[0], SampleChildConfig)
+    assert isinstance(sub_configs[1], SampleChildConfig)
+    assert sub_configs[0] is not sub_configs[1]
+
+
 @pytest.mark.parametrize("config_dict, expect_error", [
     ({}, True),
     ({'PROP1': 'x'}, False),
