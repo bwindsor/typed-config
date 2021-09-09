@@ -36,3 +36,6 @@ Version bump to build after move from travis-ci.org to travis-ci.com
 
 ### v0.2.4
 Version bump to build after move from travis-ci.org to travis-ci.com
+
+### v0.2.5
+Version bump to build after move from travis-ci.org to travis-ci.com
