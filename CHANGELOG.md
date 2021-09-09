@@ -33,3 +33,6 @@ Add `replace_source` and `set_sources` methods on `Config` and `ConfigProvider` 
 
 ### v0.2.3
 Version bump to build after move from travis-ci.org to travis-ci.com
+
+### v0.2.4
+Version bump to build after move from travis-ci.org to travis-ci.com
