@@ -1,4 +1,3 @@
-# This future import allows methods of Config to use Config as their return type
 import typing
 from itertools import chain
 from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any
