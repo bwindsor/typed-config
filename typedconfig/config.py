@@ -8,6 +8,7 @@ import inspect
 
 logger = logging.getLogger(__name__)
 
+TConfig = TypeVar('TConfig', bound='Config')
 T = TypeVar('T')
 U = TypeVar('U')
 V = TypeVar('V')
@@ -97,7 +98,7 @@ def key(section_name: str = None,
     return getter
 
 
-def group_key(cls: Callable[[], U], group_section_name: str = None, hierarchical: bool = False) -> U:
+def group_key(cls: Type[TConfig], group_section_name: str = None, hierarchical: bool = False) -> TConfig:
     """
     Creates a key containing a composed config (or child config) of the configuration. The first time the
     child config is required, it is created and stored in an attribute. This attribute is then used from that
@@ -121,15 +122,16 @@ def group_key(cls: Callable[[], U], group_section_name: str = None, hierarchical
 
         attr_name = '_' + self._get_property_name_from_object(wrapped_f)
         if not hasattr(self, attr_name):
-            setattr(self, attr_name, typing.cast(Type[Config], cls)(provider=self._provider, parent_section_hierarchy=parent_section_hierarchy))
-        return getattr(self, attr_name)
+            setattr(self, attr_name, cls(provider=self._provider, parent_section_hierarchy=parent_section_hierarchy))
+        return typing.cast(TConfig, getattr(self, attr_name))
 
     setattr(wrapped_f.fget, Config._composed_config_registration_string, True)
-    return wrapped_f
+
+    return typing.cast(TConfig, wrapped_f)
 
 
-def section(section_name: str) -> Callable[[T], T]:
-    def _section(cls: T) -> T:
+def section(section_name: str) -> Callable[[Type[TConfig]], Type[TConfig]]:
+    def _section(cls: Type[TConfig]) -> Type[TConfig]:
         class SectionConfig(cls):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, section_name=section_name, **kwargs)
