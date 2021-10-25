@@ -165,8 +165,11 @@ def test_caching():
     class SampleConfig(Config):
         prop1 = key('SampleConfig', 'PROP1')
 
-    mock_source: ConfigSource = MagicMock(spec=ConfigSource)
-    mock_source.get_config_value = MagicMock()
+    class MockSource(ConfigSource):
+        get_config_value = MagicMock()
+
+    mock_source = MockSource()
+
     s = SampleConfig()
     s.add_source(mock_source)
 

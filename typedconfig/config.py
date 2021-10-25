@@ -65,18 +65,20 @@ def key(section_name: str = None,
             resolved_key_name = self._resolve_key_name(getter)
             _mutable_state['key_name'] = resolved_key_name
 
+        section_hierarchy = [*self._parent_section_hierarchy, resolved_section_name]
+
         # If value is cached, just use the cached value
-        cached_value = self._provider.get_from_cache(resolved_section_name, resolved_key_name)
+        cached_value = self._provider.get_from_cache(section_hierarchy, resolved_key_name)
         if cached_value is not None:
             return cached_value
 
-        value = self._provider.get_key(resolved_section_name, resolved_key_name)
+        value = self._provider.get_key(section_hierarchy, resolved_key_name)
 
         # If we still haven't found a config value and this parameter is required,
         # raise an exception, otherwise use the default
         if value is None:
             if required:
-                raise KeyError("Config parameter {0}.{1} not found".format(resolved_section_name, resolved_key_name))
+                raise KeyError(f"Config parameter {''.join(section_hierarchy)}/{resolved_key_name} not found")
             else:
                 value = default
 
@@ -86,7 +88,7 @@ def key(section_name: str = None,
 
         # Cache this for next time if still not none
         if value is not None:
-            self._provider.add_to_cache(resolved_section_name, resolved_key_name, value)
+            self._provider.add_to_cache(section_hierarchy, resolved_key_name, value)
 
         return value
 
@@ -111,10 +113,16 @@ def group_key(cls: Type[TConfig], group_section_name: str = None, hierarchical: 
     """
 
     @property
-    def wrapped_f(self):
+    def wrapped_f(self: Config):
+        if hierarchical:
+            resolved_section_name = self._resolve_section_name(group_section_name)
+            parent_section_hierarchy = [*self._parent_section_hierarchy, resolved_section_name]
+        else:
+            parent_section_hierarchy = None
+
         attr_name = '_' + self._get_property_name_from_object(wrapped_f)
         if not hasattr(self, attr_name):
-            setattr(self, attr_name, cls(provider=self._provider))
+            setattr(self, attr_name, cls(provider=self._provider, parent_section_hierarchy=parent_section_hierarchy))
         return typing.cast(TConfig, getattr(self, attr_name))
 
     setattr(wrapped_f.fget, Config._composed_config_registration_string, True)
@@ -143,14 +151,16 @@ class Config:
     _config_key_key_name_string = '__config_key_key_name__'
     _config_key_section_name_string = '__config_key_section_name__'
 
-    def __init__(self, section_name=None, sources: List[ConfigSource] = None,
-                 provider: Optional[ConfigProvider] = None):
+    def __init__(self, section_name: str = None, sources: List[ConfigSource] = None,
+                 provider: Optional[ConfigProvider] = None,
+                 parent_section_hierarchy: List[str] = None):
         if provider is None:
             provider = ConfigProvider(sources=sources)
         elif not isinstance(provider, ConfigProvider):
             raise TypeError("provider must be a ConfigProvider object")
         self._section_name = section_name
         self._provider: ConfigProvider = provider
+        self._parent_section_hierarchy: List[str] = parent_section_hierarchy if parent_section_hierarchy is not None else []
 
     def __repr__(self):
         key_names = self.get_registered_properties()
@@ -274,7 +284,7 @@ class Config:
 
                 section_name = self._resolve_section_name(getattr(property_object.fget, self._config_key_section_name_string))
                 key_name = self._resolve_key_name(property_object)
-                self._provider.add_to_cache(section_name, key_name, v)
+                self._provider.add_to_cache([*self._parent_section_hierarchy, section_name], key_name, v)
 
     def clear_cache(self):
         """
@@ -343,4 +353,4 @@ class Config:
         -------
         value: the loaded config value as a string
         """
-        return self._provider.get_key(section_name, key_name)
+        return self._provider.get_key([*self._parent_section_hierarchy, section_name], key_name)
