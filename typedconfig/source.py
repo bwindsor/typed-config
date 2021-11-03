@@ -9,7 +9,7 @@ class ConfigSource(ABC):
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
         raise NotImplementedError()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<{self.__class__.__qualname__}>'
 
 
@@ -24,7 +24,7 @@ class EnvironmentConfigSource(ConfigSource):
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
         return os.environ.get(f"{self._prefix.upper()}{section_name.upper()}_{key_name.upper()}", None)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'<{self.__class__.__qualname__}(prefix={repr(self.prefix)})>'
 
 
@@ -37,7 +37,7 @@ class AbstractIniConfigSource(ConfigSource):
 
 
 class IniStringConfigSource(AbstractIniConfigSource):
-    def __init__(self, ini_string, source='<string>'):
+    def __init__(self, ini_string: str, source: str = '<string>'):
         config = ConfigParser()
         config.read_string(ini_string, source=source)
         super().__init__(config)
@@ -53,7 +53,7 @@ class IniFileConfigSource(AbstractIniConfigSource):
             raise FileNotFoundError(f"Could not find config file {self.filename}")
         super().__init__(config)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__qualname__}(filename='{str(self.filename)}')>"
 
 

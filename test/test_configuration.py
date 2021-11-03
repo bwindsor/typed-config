@@ -6,26 +6,26 @@ from typedconfig.source import DictConfigSource, ConfigSource
 
 
 class GrandchildConfig(Config):
-    prop1 = key('grandchild', 'PROP1')
+    prop1 = key(section_name='grandchild', key_name='PROP1')
 
 
 class ChildConfig(Config):
-    prop1 = key('child', 'PROP1')
+    prop1 = key(section_name='child', key_name='PROP1')
     grandchild_config = group_key(GrandchildConfig)
 
 
 class ParentConfig(Config):
-    prop1 = key('parent', 'PROP1')
+    prop1 = key(section_name='parent', key_name='PROP1')
     child_config = group_key(ChildConfig)
 
 
 def test_subclass_config():
 
     class SampleConfig(Config):
-        prop1 = key('s', 'prop1', cast=float)
-        prop2 = key('s', 'prop2', cast=int)
-        prop3 = key('s', 'prop3', cast=str)
-        prop4 = key('s', 'prop4')
+        prop1 = key(section_name='s', key_name='prop1', cast=float)
+        prop2 = key(section_name='s', key_name='prop2', cast=int)
+        prop3 = key(section_name='s', key_name='prop3', cast=str)
+        prop4 = key(section_name='s', key_name='prop4')
 
     config_source = DictConfigSource({
         's': {
@@ -46,8 +46,8 @@ def test_subclass_config():
 
 def test_register_properties():
     class SampleConfig(Config):
-        registerd_key1 = key('s', 'key1')
-        registerd_key2 = key('s', 'key2')
+        registerd_key1 = key(section_name='s', key_name='key1')
+        registerd_key2 = key(section_name='s', key_name='key2')
 
         not_registered_key = 3
 
@@ -107,7 +107,7 @@ def test_reuse_child_config():
 ], ids=["ConfigMissing", "PropertiesMatch", "ExtraConfig"])
 def test_read(config_dict, expect_error):
     class SampleConfig(Config):
-        prop1 = key('s', 'prop1')
+        prop1 = key(section_name='s', key_name='prop1')
 
     config = SampleConfig()
     config.add_source(DictConfigSource({'s': config_dict}))
@@ -123,18 +123,26 @@ def test_read(config_dict, expect_error):
 
 
 @pytest.mark.parametrize("prop_val, args, expected_value_or_error", [
-    ('a', dict(required=True), 'a'),
-    (None, dict(required=False), None),
-    (None, dict(required=False, default=3), 3),
-    (None, dict(required=False, default=3, cast=str), '3'),
-    (None, dict(required=True), KeyError),
     ('3', dict(), '3'),
+    (None, dict(), KeyError),
+    ('3', dict(required=True), '3'),
+    (None, dict(required=True), KeyError),
+    ('3', dict(required=False), '3'),
+    (None, dict(required=False), None),
+    ('3', dict(cast=None), '3'),
     ('3', dict(cast=int), 3),
     ('a', dict(cast=int), ValueError),
+    ('3', dict(default=None), '3'),
+    ('3', dict(default='5'), '3'),
+    (None, dict(default='5'), KeyError),
+    (None, dict(required=False, default=3), 3),
+    ('3', dict(required=False, default=3), '3'),
+    (None, dict(required=False, default=3, cast=int), 3),
+    ('3', dict(required=False, default=3, cast=int), 3),
 ])
 def test_key_getter(prop_val, args, expected_value_or_error):
     class SampleConfig(Config):
-        prop = key('s', 'prop1', **args)
+        prop = key(section_name='s', key_name='prop1', **args)
 
     config = SampleConfig()
     if prop_val is None:
@@ -148,12 +156,12 @@ def test_key_getter(prop_val, args, expected_value_or_error):
             _ = config.prop
     else:
         v = config.prop
-        assert expected_value_or_error == v
+        assert v == expected_value_or_error
 
 
 def test_get_key():
     class SampleConfig(Config):
-        prop = key('s', 'prop1')
+        prop = key(section_name='s', key_name='prop1')
 
     config = SampleConfig()
     config.add_source(DictConfigSource({'s': {'PROP1': 'propval'}}))
@@ -163,7 +171,7 @@ def test_get_key():
 
 def test_caching():
     class SampleConfig(Config):
-        prop1 = key('SampleConfig', 'PROP1')
+        prop1 = key(section_name='SampleConfig', key_name='PROP1')
 
     mock_source: ConfigSource = MagicMock(spec=ConfigSource)
     mock_source.get_config_value = MagicMock()
@@ -452,8 +460,8 @@ def test_post_read_hook():
 def test_post_read_hook_different_key_name():
     @section('s')
     class SampleConfig(Config):
-        prop1 = key('s', 'key1', cast=str)
-        prop2 = key('s', 'key2', cast=str, required=False)
+        prop1 = key(section_name='s', key_name='key1', cast=str)
+        prop2 = key(section_name='s', key_name='key2', cast=str, required=False)
 
         def post_read_hook(self) -> dict:
             return dict(prop2='x' + self.prop1)
@@ -472,7 +480,7 @@ def test_post_read_hook_different_key_name():
 
 def test_post_read_hook_modify_child():
     class SampleChildConfig(Config):
-        prop3 = key('s', 'key3', cast=str)
+        prop3 = key(section_name='s', key_name='key3', cast=str)
 
     class SampleConfig(Config):
         prop3 = group_key(SampleChildConfig)
@@ -497,7 +505,7 @@ def test_post_read_hook_modify_child():
 
 def test_post_read_hook_child_takes_priority():
     class SampleChildConfig(Config):
-        prop3 = key('s', 'key3', cast=str)
+        prop3 = key(section_name='s', key_name='key3', cast=str)
 
         def post_read_hook(self) -> dict:
             return dict(
@@ -523,6 +531,29 @@ def test_post_read_hook_child_takes_priority():
     config.read()
 
     assert config.prop3.prop3 == 'child_new_value'
+
+
+@pytest.mark.parametrize("post_read_hook_return_value", [
+    dict(wrong_prop='c'),
+    dict(prop1=dict(a=4)),
+    dict(prop2='d'),
+], ids=["KeyNotExist", "DictNotValue", "ValueNotDict"])
+def test_post_read_hook_invalid_attributes(post_read_hook_return_value: dict):
+    class SampleChildConfig(Config):
+        pass
+
+    @section('s')
+    class SampleConfig(Config):
+        prop1 = key(cast=str)
+        prop2 = group_key(SampleChildConfig)
+
+        def post_read_hook(self) -> dict:
+            return post_read_hook_return_value
+
+    config_source = DictConfigSource({'s': {'prop1': 'a'}})
+    config = SampleConfig(sources=[config_source])
+    with pytest.raises(KeyError):
+        config.read()
 
 
 def test_config_repr():

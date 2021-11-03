@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from typedconfig.source import ConfigSource
 
 logger = logging.getLogger(__name__)
@@ -11,18 +11,18 @@ class ConfigProvider:
     across the configuration objects
     """
     def __init__(self, sources: List[ConfigSource] = None):
-        self._cache: Dict[str, Dict[str, str]] = {}
+        self._cache: Dict[str, Dict[str, Any]] = {}
         self._config_sources: List[ConfigSource] = []
         if sources is not None:
             for source in sources:
                 self.add_source(source)
 
-    def add_to_cache(self, section_name: str, key_name: str, value) -> None:
+    def add_to_cache(self, section_name: str, key_name: str, value: Any) -> None:
         if section_name not in self._cache:
             self._cache[section_name] = {}
         self._cache[section_name][key_name] = value
 
-    def get_from_cache(self, section_name: str, key_name: str):
+    def get_from_cache(self, section_name: str, key_name: str) -> Any:
         if section_name not in self._cache:
             return None
         return self._cache[section_name].get(key_name, None)
@@ -47,18 +47,18 @@ class ConfigProvider:
 
         return value
 
-    def add_source(self, source: ConfigSource):
+    def add_source(self, source: ConfigSource) -> None:
         if not isinstance(source, ConfigSource):
             raise TypeError("Sources must be subclasses of ConfigSource")
         logger.debug(f'Adding config source of type {source.__class__.__name__} to {self.__class__.__name__}')
         self._config_sources.append(source)
 
-    def set_sources(self, sources: List[ConfigSource]):
+    def set_sources(self, sources: List[ConfigSource]) -> None:
         self._config_sources.clear()
         for source in sources:
             self.add_source(source)
 
-    def replace_source(self, old_source: ConfigSource, new_source: ConfigSource):
+    def replace_source(self, old_source: ConfigSource, new_source: ConfigSource) -> None:
         if not isinstance(new_source, ConfigSource):
             raise TypeError("Sources must be subclasses of ConfigSource")
         logger.debug(f'Replacing config source of type {old_source.__class__.__name__} with {new_source.__class__.__name__}')

@@ -5,9 +5,11 @@ python:
   - '3.7'
   - '3.8'
   - '3.9'
+  - '3.10'
 install:
   - pip install -r requirements.txt
 script:
+  - mypy typedconfig --disallow-untyped-defs
   - pytest --cov
   - codecov
 deploy:

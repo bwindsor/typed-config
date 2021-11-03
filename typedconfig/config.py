@@ -1,6 +1,7 @@
 import typing
 from itertools import chain
-from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any
+from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any, overload
+from typing_extensions import Literal
 from typedconfig.provider import ConfigProvider
 from typedconfig.source import ConfigSource
 import logging
@@ -13,23 +14,73 @@ T = TypeVar('T')
 U = TypeVar('U')
 V = TypeVar('V')
 
+"""
+required | cast | default | return_type
+True  | None/missing    | -       | str
+True  | NotNone | -       | T
 
-def _propagate_to_children():
-    def propagate_to_children(f):
-        def wrapped_f(self, *args, **kwargs):
-            child_configs = self.get_registered_composed_config()
-            f(self, *args, **kwargs)
-            for c in child_configs:
-                wrapped_f(c, *args, **kwargs)
-        return wrapped_f
-    return propagate_to_children
+False | NotNone | None/missing | Optional[T]
+False | NotNone | NotNone | T
+False | None    | -       | Union[str, Optional[T]]
+"""
 
 
-def key(section_name: str = None,
-        key_name: str = None,
+@overload
+def key(*,
+        section_name: Optional[str] = ...,
+        key_name: Optional[str] = ...,
+        required: Literal[False],
+        cast: Callable[[Union[T, str]], T],
+        default: T) -> T:
+    ...
+
+
+@overload
+def key(*,
+        section_name: Optional[str] = ...,
+        key_name: Optional[str] = ...,
+        required: Literal[False],
+        cast: Callable[[Union[T, str]], T],
+        default: None = ...) -> Optional[T]:
+    ...
+
+
+@overload
+def key(*,
+        section_name: Optional[str] = ...,
+        key_name: Optional[str] = ...,
+        required: Literal[False],
+        cast: None = ...,
+        default: Optional[T] = ...) -> Union[str, Optional[T]]:
+    ...
+
+
+@overload
+def key(*,
+        section_name: Optional[str] = ...,
+        key_name: Optional[str] = ...,
+        required: Literal[True] = ...,
+        cast: Callable[[Union[T, str]], T],
+        default: Optional[T] = ...) -> T:
+    ...
+
+
+@overload
+def key(*,
+        section_name: Optional[str] = ...,
+        key_name: Optional[str] = ...,
+        required: Literal[True] = ...,
+        cast: None = ...,
+        default: Optional[T] = ...) -> str:
+    ...
+
+
+def key(*,
+        section_name: Optional[str] = None,
+        key_name: Optional[str] = None,
         required: bool = True,
-        cast: Callable[[Union[T, str]], T] = None,
-        default: T = None) -> T:
+        cast: Optional[Callable[[Union[T, str]], T]] = None,
+        default: Optional[T] = None) -> Union[Optional[T], str]:
     """
     Provides a getter for a configuration key
     Parameters
@@ -50,8 +101,7 @@ def key(section_name: str = None,
         'key_name': key_name.upper() if key_name is not None else None
     }
 
-    @property
-    def getter(self: Config) -> T:
+    def getter_method(self: Config) -> Union[Optional[T], str]:
         """
         Returns
         -------
@@ -70,33 +120,41 @@ def key(section_name: str = None,
         if cached_value is not None:
             return cached_value
 
-        value = self._provider.get_key(resolved_section_name, resolved_key_name)
+        string_value = self._provider.get_key(resolved_section_name, resolved_key_name)
+        cast_value: Union[Optional[T], str] = None
 
         # If we still haven't found a config value and this parameter is required,
         # raise an exception, otherwise use the default
-        if value is None:
+        if string_value is None:
             if required:
                 raise KeyError("Config parameter {0}.{1} not found".format(resolved_section_name, resolved_key_name))
             else:
-                value = default
-
-        # If a casting function has been specified then cast to the required data type
-        if value is not None and cast is not None:
-            value = cast(value)
+                if default is not None:
+                    if cast is not None:
+                        cast_value = cast(default)
+                    else:
+                        cast_value = default
+        else:
+            # If a casting function has been specified then cast to the required data type
+            if cast is not None:
+                cast_value = cast(string_value)
+            else:
+                cast_value = string_value
 
         # Cache this for next time if still not none
-        if value is not None:
-            self._provider.add_to_cache(resolved_section_name, resolved_key_name, value)
+        if cast_value is not None:
+            self._provider.add_to_cache(resolved_section_name, resolved_key_name, cast_value)
 
-        return value
+        return cast_value
 
+    getter = property(getter_method)
     setattr(getter.fget, Config._config_key_registration_string, True)
     setattr(getter.fget, Config._config_key_key_name_string, key_name.upper() if key_name is not None else None)
     setattr(getter.fget, Config._config_key_section_name_string, section_name)
-    return getter
+    return typing.cast(Union[Optional[T], str], getter)
 
 
-def group_key(cls: Type[TConfig], group_section_name: str = None, hierarchical: bool = False) -> TConfig:
+def group_key(cls: Type[TConfig], *, group_section_name: str = None, hierarchical: bool = False) -> TConfig:
     """
     Creates a key containing a composed config (or child config) of the configuration. The first time the
     child config is required, it is created and stored in an attribute. This attribute is then used from that
@@ -110,13 +168,13 @@ def group_key(cls: Type[TConfig], group_section_name: str = None, hierarchical: 
     Decorated composed config getter function
     """
 
-    @property
-    def wrapped_f(self):
+    def wrapped_f_getter(self: Config) -> TConfig:
         attr_name = '_' + self._get_property_name_from_object(wrapped_f)
         if not hasattr(self, attr_name):
             setattr(self, attr_name, cls(provider=self._provider))
         return typing.cast(TConfig, getattr(self, attr_name))
 
+    wrapped_f = property(wrapped_f_getter)
     setattr(wrapped_f.fget, Config._composed_config_registration_string, True)
 
     return typing.cast(TConfig, wrapped_f)
@@ -124,8 +182,8 @@ def group_key(cls: Type[TConfig], group_section_name: str = None, hierarchical: 
 
 def section(section_name: str) -> Callable[[Type[TConfig]], Type[TConfig]]:
     def _section(cls: Type[TConfig]) -> Type[TConfig]:
-        class SectionConfig(cls):
-            def __init__(self, *args, **kwargs):
+        class SectionConfig(cls):  # type: ignore
+            def __init__(self, *args, **kwargs):   # type: ignore
                 super().__init__(*args, section_name=section_name, **kwargs)
         SectionConfig.__name__ = cls.__name__
         SectionConfig.__qualname__ = cls.__qualname__
@@ -143,7 +201,7 @@ class Config:
     _config_key_key_name_string = '__config_key_key_name__'
     _config_key_section_name_string = '__config_key_section_name__'
 
-    def __init__(self, section_name=None, sources: List[ConfigSource] = None,
+    def __init__(self, section_name: str = None, sources: List[ConfigSource] = None,
                  provider: Optional[ConfigProvider] = None):
         if provider is None:
             provider = ConfigProvider(sources=sources)
@@ -152,7 +210,7 @@ class Config:
         self._section_name = section_name
         self._provider: ConfigProvider = provider
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         key_names = self.get_registered_properties()
         group_key_info = inspect.getmembers(self.__class__, predicate=lambda x: self.is_member_registered(
             x, Config._composed_config_registration_string))
@@ -208,7 +266,7 @@ class Config:
         return members[0][0].upper()
 
     @staticmethod
-    def is_member_registered(member, reg_string: str):
+    def is_member_registered(member: Any, reg_string: str) -> bool:
         if isinstance(member, property):
             return getattr(member.fget, reg_string, False)
         else:
@@ -228,8 +286,7 @@ class Config:
             x, Config._composed_config_registration_string))
         return [getattr(self, f[0]) if isinstance(f[1], property) else f[1](self) for f in all_properties]
 
-    @_propagate_to_children()
-    def read(self):
+    def read(self) -> None:
         """
         Loops through all config properties generated with the key function and reads their values in.
         It is useful to call this after adding the config sources for fail-fast behaviour, since an error will occur at
@@ -239,11 +296,15 @@ class Config:
         -------
         None
         """
+        child_configs = self.get_registered_composed_config()
         registered_properties = self.get_registered_properties()
         for f in registered_properties:
             getattr(self, f)
 
         self._post_read(self.post_read_hook())
+
+        for c in child_configs:
+            c.read()
 
     def post_read_hook(self) -> dict:
         """
@@ -254,13 +315,13 @@ class Config:
         """
         return dict()
 
-    def _post_read(self, updated_values: dict):
+    def _post_read(self, updated_values: dict) -> None:
         registered_properties = set(self.get_registered_properties())
 
         for k, v in updated_values.items():
             if isinstance(v, dict):
-                property_object = getattr(self.__class__, k)
-                if not self.is_member_registered(property_object, self._composed_config_registration_string):
+                group_property_object: property = getattr(self.__class__, k)
+                if not self.is_member_registered(group_property_object, self._composed_config_registration_string):
                     raise KeyError(f"{k} is not a valid typed config group_key() of {self.__class__.__name__}")
                 child_config = getattr(self, k)
                 child_config._post_read(v)
@@ -268,15 +329,13 @@ class Config:
                 if k not in registered_properties:
                     raise KeyError(f"{k} is not a valid attribute of {self.__class__.__name__}")
 
-                property_object: property = getattr(self.__class__, k)
-                if not self.is_member_registered(property_object, self._config_key_registration_string):
-                    raise KeyError(f"{k} is not a valid typed config key() object of {self.__class__.__name__}")
+                key_property_object: property = getattr(self.__class__, k)
 
-                section_name = self._resolve_section_name(getattr(property_object.fget, self._config_key_section_name_string))
-                key_name = self._resolve_key_name(property_object)
+                section_name = self._resolve_section_name(getattr(key_property_object.fget, self._config_key_section_name_string))
+                key_name = self._resolve_key_name(key_property_object)
                 self._provider.add_to_cache(section_name, key_name, v)
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """
         Config values are cached the first time they are requested. This means that if, for example, config values are
         coming from a database or API, the call does not need to be made again. This function clears the cache.
@@ -286,7 +345,7 @@ class Config:
         """
         self._provider.clear_cache()
 
-    def add_source(self, source: ConfigSource):
+    def add_source(self, source: ConfigSource) -> None:
         """
         Adds a configuration source
         Parameters
@@ -299,7 +358,7 @@ class Config:
         """
         self._provider.add_source(source)
 
-    def replace_source(self, old_source: ConfigSource, new_source: ConfigSource):
+    def replace_source(self, old_source: ConfigSource, new_source: ConfigSource) -> None:
         """
         Replaces a ConfigSource with a new one. This is useful for example if you modify a config file, so want
         to swap a ConfigSource which reads from a file on initialisation for a new one.
@@ -316,7 +375,7 @@ class Config:
         """
         self._provider.replace_source(old_source, new_source)
 
-    def set_sources(self, sources: List[ConfigSource]):
+    def set_sources(self, sources: List[ConfigSource]) -> None:
         """
         Completely replaces the set of ConfigSources with a new set.
 
