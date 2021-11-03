@@ -46,3 +46,6 @@ Add `post_read_hook` method which can be added to `Config` subclasses to allow p
 ### v1.0.0
 BREAKING CHANGE: The `key` function now expects keyword arguments and will not accept non-keyword arguments any more.
 Make compatible with mypy. 
+
+### v1.0.1
+Remove `include_package_data=True` from `setup.py` to ensure `py.typed` is included in source distributions
