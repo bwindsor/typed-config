@@ -42,3 +42,7 @@ Version bump to build after move from travis-ci.org to travis-ci.com
 
 ### v0.3.0
 Add `post_read_hook` method which can be added to `Config` subclasses to allow parts of the config to be modified after it has been fully loaded
+
+### v1.0.0
+BREAKING CHANGE: The `key` function now expects keyword arguments and will not accept non-keyword arguments any more.
+Make compatible with mypy. 
