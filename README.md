@@ -472,7 +472,7 @@ These are listed here:
 | [typed-config-aws-sources](https://pypi.org/project/typed-config-aws-sources) | `typedconfig_awssource` | Config sources using `boto3` to get config e.g. from S3 or DynamoDB
 
 ## Contributing
-Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with all versions 3.6-3.10 too.
+Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with all versions 3.6-3.9 too.
 
 ### Development setup
 1. Clone the git repository
