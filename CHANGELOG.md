@@ -49,3 +49,6 @@ Make compatible with mypy.
 
 ### v1.0.1
 Remove `include_package_data=True` from `setup.py` to ensure `py.typed` is included in source distributions
+
+### v1.0.3
+Make type annotations pass string Mypy checking.
