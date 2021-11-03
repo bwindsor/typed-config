@@ -30,7 +30,6 @@ setup(
     ],
     packages=['typedconfig'],
     package_data={'typedconfig': ['py.typed']},
-    include_package_data=True,
     install_requires=[],
     entry_points={}
 )
