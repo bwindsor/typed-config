@@ -44,7 +44,7 @@ class IniStringConfigSource(AbstractIniConfigSource):
 
 
 class IniFileConfigSource(AbstractIniConfigSource):
-    def __init__(self, filename: str, encoding: str = None, must_exist: bool = True):
+    def __init__(self, filename: str, encoding: Optional[str] = None, must_exist: bool = True):
         self.filename = filename
         config = ConfigParser()
         if os.path.exists(self.filename):

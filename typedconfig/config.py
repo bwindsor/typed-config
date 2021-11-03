@@ -1,6 +1,6 @@
 import typing
 from itertools import chain
-from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any, overload
+from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any, overload, Dict
 from typing_extensions import Literal
 from typedconfig.provider import ConfigProvider
 from typedconfig.source import ConfigSource
@@ -116,7 +116,7 @@ def key(*,
             _mutable_state['key_name'] = resolved_key_name
 
         # If value is cached, just use the cached value
-        cached_value = self._provider.get_from_cache(resolved_section_name, resolved_key_name)
+        cached_value: Union[T, str] = self._provider.get_from_cache(resolved_section_name, resolved_key_name)
         if cached_value is not None:
             return cached_value
 
@@ -154,7 +154,7 @@ def key(*,
     return typing.cast(Union[Optional[T], str], getter)
 
 
-def group_key(cls: Type[TConfig], *, group_section_name: str = None, hierarchical: bool = False) -> TConfig:
+def group_key(cls: Type[TConfig], *, group_section_name: Optional[str] = None, hierarchical: bool = False) -> TConfig:
     """
     Creates a key containing a composed config (or child config) of the configuration. The first time the
     child config is required, it is created and stored in an attribute. This attribute is then used from that
@@ -201,7 +201,7 @@ class Config:
     _config_key_key_name_string = '__config_key_key_name__'
     _config_key_section_name_string = '__config_key_section_name__'
 
-    def __init__(self, section_name: str = None, sources: List[ConfigSource] = None,
+    def __init__(self, section_name: Optional[str] = None, sources: Optional[List[ConfigSource]] = None,
                  provider: Optional[ConfigProvider] = None):
         if provider is None:
             provider = ConfigProvider(sources=sources)
@@ -254,7 +254,7 @@ class Config:
         return self._section_name
 
     def _resolve_key_name(self, property_object: property) -> str:
-        key_key_name = getattr(property_object.fget, self._config_key_key_name_string)
+        key_key_name: str = getattr(property_object.fget, self._config_key_key_name_string)
         if key_key_name is not None:
             return key_key_name
 
@@ -268,7 +268,7 @@ class Config:
     @staticmethod
     def is_member_registered(member: Any, reg_string: str) -> bool:
         if isinstance(member, property):
-            return getattr(member.fget, reg_string, False)
+            return typing.cast(bool, getattr(member.fget, reg_string, False))
         else:
             return False
 
@@ -306,7 +306,7 @@ class Config:
         for c in child_configs:
             c.read()
 
-    def post_read_hook(self) -> dict:
+    def post_read_hook(self) -> Dict[str, Any]:
         """
         This method can be overridden to modify config values after read() is called.
         Returns
@@ -315,7 +315,7 @@ class Config:
         """
         return dict()
 
-    def _post_read(self, updated_values: dict) -> None:
+    def _post_read(self, updated_values: Dict[str, Any]) -> None:
         registered_properties = set(self.get_registered_properties())
 
         for k, v in updated_values.items():

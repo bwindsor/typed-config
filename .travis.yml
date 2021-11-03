@@ -8,7 +8,7 @@ python:
 install:
   - pip install -r requirements.txt
 script:
-  - mypy typedconfig --disallow-untyped-defs
+  - mypy typedconfig --strict
   - pytest --cov
   - codecov
 deploy:
