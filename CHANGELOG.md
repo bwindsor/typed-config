@@ -52,3 +52,6 @@ Remove `include_package_data=True` from `setup.py` to ensure `py.typed` is inclu
 
 ### v1.0.3
 Make type annotations pass string Mypy checking.
+
+### v1.1.0
+Remove pointless casting of `default` value, since the `default` should be provided already cast, and should have the same type as the return value of the `cast` function. The also means that the type of a custom `cast` function should only need to accept a string as input, rather than having to check for if it has already been cast.
