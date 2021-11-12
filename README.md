@@ -174,7 +174,7 @@ class AppConfig(Config):
 config = AppConfig(sources=[...])
 ```
 In this example we have three ways of casting:
-1. Not casting at all. This default to returning a `str`, but your IDE won't know that so if you want type hints use `cast=str`
+1. Not casting at all. This defaults to returning a `str`, but your IDE won't know that so if you want type hints use `cast=str`
 2. Casting to an built in type which can take a string input and parse it, for example `int`
 3. Defining a custom function. Your function should take one string input and return one output of any type. To get type hint, just make sure your function has type annotations.
 4. Using a lambda expression. The type inference may or may not work depending on your expression, so if it doesn't just write it as a function with type annotations.
