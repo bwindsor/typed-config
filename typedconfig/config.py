@@ -30,7 +30,7 @@ def key(*,
         section_name: Optional[str] = ...,
         key_name: Optional[str] = ...,
         required: Literal[False],
-        cast: Callable[[Union[T, str]], T],
+        cast: Callable[[str], T],
         default: T) -> T:
     ...
 
@@ -40,7 +40,7 @@ def key(*,
         section_name: Optional[str] = ...,
         key_name: Optional[str] = ...,
         required: Literal[False],
-        cast: Callable[[Union[T, str]], T],
+        cast: Callable[[str], T],
         default: None = ...) -> Optional[T]:
     ...
 
@@ -60,7 +60,7 @@ def key(*,
         section_name: Optional[str] = ...,
         key_name: Optional[str] = ...,
         required: Literal[True] = ...,
-        cast: Callable[[Union[T, str]], T],
+        cast: Callable[[str], T],
         default: Optional[T] = ...) -> T:
     ...
 
@@ -79,7 +79,7 @@ def key(*,
         section_name: Optional[str] = None,
         key_name: Optional[str] = None,
         required: bool = True,
-        cast: Optional[Callable[[Union[T, str]], T]] = None,
+        cast: Optional[Callable[[str], T]] = None,
         default: Optional[T] = None) -> Union[Optional[T], str]:
     """
     Provides a getter for a configuration key
@@ -130,10 +130,7 @@ def key(*,
                 raise KeyError("Config parameter {0}.{1} not found".format(resolved_section_name, resolved_key_name))
             else:
                 if default is not None:
-                    if cast is not None:
-                        cast_value = cast(default)
-                    else:
-                        cast_value = default
+                    cast_value = default
         else:
             # If a casting function has been specified then cast to the required data type
             if cast is not None:
