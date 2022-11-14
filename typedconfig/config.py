@@ -1,9 +1,10 @@
+import sys
 import typing
 from itertools import chain
 from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any, overload, Dict
-try:
+if sys.version_info >= (3, 8):
     from typing import Literal
-except ImportError:
+else:
     # Python <= 3.7
     from typing_extensions import Literal
 from typedconfig.provider import ConfigProvider
