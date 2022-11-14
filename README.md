@@ -6,7 +6,7 @@ Typed, extensible, dependency free configuration reader for Python projects for 
 
 `pip install typed-config`
 
-Requires python 3.6 or above.
+Requires python 3.6 or above. (Also, needs `typing_extensions` for Python <= 3.7, so not completely dependency free if using old Python).
 
 ## Basic usage
 ```python
