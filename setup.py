@@ -30,6 +30,6 @@ setup(
     ],
     packages=['typedconfig'],
     package_data={'typedconfig': ['py.typed']},
-    install_requires=[],
+    install_requires=['typing-extensions >= 3.10.0; python_version < "3.8.0"'],
     entry_points={}
 )
