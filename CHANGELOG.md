@@ -61,3 +61,6 @@ Fix `ImportError` for `typing_extensions` on Python <= 3.7, by requiring it as a
 
 ### v1.2.1
 Enable CI testing on Python 3.10 and 3.11. Use `sys.version_info` to help with imports as mypy plays nicely with this. 
+
+### v1.3.0
+Drop running tests on Python 3.6 since it is end of life.
