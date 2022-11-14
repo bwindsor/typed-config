@@ -58,3 +58,6 @@ Remove pointless casting of `default` value, since the `default` should be provi
 
 ### v1.2.0
 Fix `ImportError` for `typing_extensions` on Python <= 3.7, by requiring it as a dependency. This is because `Literal` is used as a type. This did not become part of the built in `typing` module until Python 3.8.
+
+### v1.2.1
+Enable CI testing on Python 3.10 and 3.11. Use `sys.version_info` to help with imports as mypy plays nicely with this. 
