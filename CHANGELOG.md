@@ -55,3 +55,6 @@ Make type annotations pass string Mypy checking.
 
 ### v1.1.0
 Remove pointless casting of `default` value, since the `default` should be provided already cast, and should have the same type as the return value of the `cast` function. The also means that the type of a custom `cast` function should only need to accept a string as input, rather than having to check for if it has already been cast.
+
+### v1.2.0
+Fix `ImportError` for `typing_extensions` on Python <= 3.7, by requiring it as a dependency. This is because `Literal` is used as a type. This did not become part of the built in `typing` module until Python 3.8.
