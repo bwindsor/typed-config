@@ -1,5 +1,7 @@
 import inspect
 import pytest
+from enum import Enum
+from typedconfig.casts import enum_cast
 from unittest.mock import MagicMock
 from typedconfig.config import Config, key, section, group_key, ConfigProvider
 from typedconfig.source import DictConfigSource, ConfigSource
@@ -17,6 +19,12 @@ class ChildConfig(Config):
 class ParentConfig(Config):
     prop1 = key(section_name="parent", key_name="PROP1")
     child_config = group_key(ChildConfig)
+
+
+class ExampleEnum(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
 
 
 def test_subclass_config():
@@ -570,3 +578,4 @@ def test_config_repr():
 
     config = SampleConfig()
     assert repr(config) == "SampleConfig(b='B', child=SampleChildConfig(a='A'))"
+
