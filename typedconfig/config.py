@@ -1,5 +1,6 @@
 import sys
 import typing
+from enum import Enum, EnumType, EnumMeta
 from itertools import chain
 from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any, overload, Dict
 if sys.version_info >= (3, 8):
@@ -29,13 +30,13 @@ False | NotNone | NotNone | T
 False | None    | -       | Union[str, Optional[T]]
 """
 
-
 @overload
 def key(*,
         section_name: Optional[str] = ...,
         key_name: Optional[str] = ...,
         required: Literal[False],
         cast: Callable[[str], T],
+        enum_type: None = ...,
         default: T) -> T:
     ...
 
@@ -46,6 +47,7 @@ def key(*,
         key_name: Optional[str] = ...,
         required: Literal[False],
         cast: Callable[[str], T],
+        enum_type: None = ...,
         default: None = ...) -> Optional[T]:
     ...
 
@@ -56,7 +58,19 @@ def key(*,
         key_name: Optional[str] = ...,
         required: Literal[False],
         cast: None = ...,
+        enum_type: None = ...,
         default: Optional[T] = ...) -> Union[str, Optional[T]]:
+    ...
+
+
+@overload
+def key(*,
+        section_name: Optional[str] = ...,
+        key_name: Optional[str] = ...,
+        required: Literal[False],
+        cast: None = ...,
+        enum_type: EnumType,
+        default: Optional[Enum] = ...) -> Union[str, Optional[Enum]]:
     ...
 
 
@@ -66,6 +80,7 @@ def key(*,
         key_name: Optional[str] = ...,
         required: Literal[True] = ...,
         cast: Callable[[str], T],
+        enum_type: None = ...,
         default: Optional[T] = ...) -> T:
     ...
 
@@ -76,16 +91,27 @@ def key(*,
         key_name: Optional[str] = ...,
         required: Literal[True] = ...,
         cast: None = ...,
+        enum_type: None = ...,
         default: Optional[T] = ...) -> str:
     ...
 
+@overload
+def key(*,
+        section_name: Optional[str] = ...,
+        key_name: Optional[str] = ...,
+        required: Literal[True] = ...,
+        cast: None = ...,
+        enum_type: EnumType = ...,
+        default: Optional[T] = ...) -> Enum:
+    ...
 
 def key(*,
         section_name: Optional[str] = None,
         key_name: Optional[str] = None,
         required: bool = True,
         cast: Optional[Callable[[str], T]] = None,
-        default: Optional[T] = None) -> Union[Optional[T], str]:
+        enum_type: Optional[EnumType] = None,
+        default: Optional[T] = None) -> Union[Optional[T], Enum, str]:
     """
     Provides a getter for a configuration key
     Parameters
@@ -96,6 +122,8 @@ def key(*,
         the python key name will be capitalised and used
     required: optional, default True. Whether the key is required or optional
     cast: optional, default None (no cast). Function taking a string argument and returning the parsed value
+    enum_type: optional, default None. A class that derives from Enum. The Config will try to interpret the string value
+        as the name of one of the members of this Enum type. 
     default: optional, default None. If required is set to False, the value to use if the config value is not found
     """
 
@@ -106,7 +134,10 @@ def key(*,
         'key_name': key_name.upper() if key_name is not None else None
     }
 
-    def getter_method(self: Config) -> Union[Optional[T], str]:
+    if cast is not None and enum_type is not None:
+        raise KeyError("cast and enum_type cannot both be specified")
+
+    def getter_method(self: Config) -> Union[Optional[T], Enum, str]:
         """
         Returns
         -------
@@ -126,7 +157,7 @@ def key(*,
             return cached_value
 
         string_value = self._provider.get_key(resolved_section_name, resolved_key_name)
-        cast_value: Union[Optional[T], str] = None
+        cast_value: Union[Optional[T], Enum, str] = None
 
         # If we still haven't found a config value and this parameter is required,
         # raise an exception, otherwise use the default
@@ -140,6 +171,11 @@ def key(*,
             # If a casting function has been specified then cast to the required data type
             if cast is not None:
                 cast_value = cast(string_value)
+            # If an enum type has been specified, use that to set the cast value
+            elif enum_type is not None:
+                if string_value not in enum_type._member_names_:
+                    raise KeyError(f"{string_value} is not a member of {enum_type}")
+                cast_value = enum_type._member_map_[string_value]
             else:
                 cast_value = string_value
 
@@ -153,7 +189,7 @@ def key(*,
     setattr(getter.fget, Config._config_key_registration_string, True)
     setattr(getter.fget, Config._config_key_key_name_string, key_name.upper() if key_name is not None else None)
     setattr(getter.fget, Config._config_key_section_name_string, section_name)
-    return typing.cast(Union[Optional[T], str], getter)
+    return typing.cast(Union[Optional[T], Enum, str], getter)
 
 
 def group_key(cls: Type[TConfig], *, group_section_name: Optional[str] = None, hierarchical: bool = False) -> TConfig:

@@ -1,5 +1,6 @@
 import inspect
 import pytest
+from enum import Enum
 from unittest.mock import MagicMock
 from typedconfig.config import Config, key, section, group_key, ConfigProvider
 from typedconfig.source import DictConfigSource, ConfigSource
@@ -17,6 +18,12 @@ class ChildConfig(Config):
 class ParentConfig(Config):
     prop1 = key(section_name='parent', key_name='PROP1')
     child_config = group_key(ChildConfig)
+
+
+class ExampleEnum(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
 
 
 def test_subclass_config():
@@ -139,6 +146,8 @@ def test_read(config_dict, expect_error):
     ('3', dict(required=False, default=3), '3'),
     (None, dict(required=False, default=3, cast=int), 3),
     ('3', dict(required=False, default=3, cast=int), 3),
+    ("BLUE", dict(enum_type=ExampleEnum), ExampleEnum.BLUE),
+    ("PURPLE", dict(enum_type=ExampleEnum), KeyError),
 ])
 def test_key_getter(prop_val, args, expected_value_or_error):
     class SampleConfig(Config):
@@ -567,3 +576,9 @@ def test_config_repr():
 
     config = SampleConfig()
     assert repr(config) == "SampleConfig(b='B', child=SampleChildConfig(a='A'))"
+
+
+def test_bad_enum_type():
+    with pytest.raises(KeyError):
+        class SampleConfig(Config):
+            bad_enum_cast = key(cast=int, enum_type=ExampleEnum)

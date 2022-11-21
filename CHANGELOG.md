@@ -64,3 +64,6 @@ Enable CI testing on Python 3.10 and 3.11. Use `sys.version_info` to help with i
 
 ### v1.3.0
 Drop running tests on Python 3.6 since it is end of life.
+
+### v1.3.1
+As part of a solution for issue #12, add enum_type as a parameter to key to make it easier to parse out enum names from configs
