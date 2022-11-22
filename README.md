@@ -480,6 +480,9 @@ Ideas for new features and pull requests are welcome. PRs must come with tests i
 3. Activate the environment `venv/scripts/activate`
 4. Install development dependencies `pip install -r requirements.txt`
 
+### Code style
+Code style is `black` and this is checked by the CI. To autoformat your code as `black` before committing, just run `black typedconfig`
+
 ### Running tests
 `pytest`
 

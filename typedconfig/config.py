@@ -2,6 +2,7 @@ import sys
 import typing
 from itertools import chain
 from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any, overload, Dict
+
 if sys.version_info >= (3, 8):
     from typing import Literal
 else:
@@ -14,10 +15,10 @@ import inspect
 
 logger = logging.getLogger(__name__)
 
-TConfig = TypeVar('TConfig', bound='Config')
-T = TypeVar('T')
-U = TypeVar('U')
-V = TypeVar('V')
+TConfig = TypeVar("TConfig", bound="Config")
+T = TypeVar("T")
+U = TypeVar("U")
+V = TypeVar("V")
 
 """
 required | cast | default | return_type
@@ -31,61 +32,73 @@ False | None    | -       | Union[str, Optional[T]]
 
 
 @overload
-def key(*,
-        section_name: Optional[str] = ...,
-        key_name: Optional[str] = ...,
-        required: Literal[False],
-        cast: Callable[[str], T],
-        default: T) -> T:
+def key(
+    *,
+    section_name: Optional[str] = ...,
+    key_name: Optional[str] = ...,
+    required: Literal[False],
+    cast: Callable[[str], T],
+    default: T,
+) -> T:
     ...
 
 
 @overload
-def key(*,
-        section_name: Optional[str] = ...,
-        key_name: Optional[str] = ...,
-        required: Literal[False],
-        cast: Callable[[str], T],
-        default: None = ...) -> Optional[T]:
+def key(
+    *,
+    section_name: Optional[str] = ...,
+    key_name: Optional[str] = ...,
+    required: Literal[False],
+    cast: Callable[[str], T],
+    default: None = ...,
+) -> Optional[T]:
     ...
 
 
 @overload
-def key(*,
-        section_name: Optional[str] = ...,
-        key_name: Optional[str] = ...,
-        required: Literal[False],
-        cast: None = ...,
-        default: Optional[T] = ...) -> Union[str, Optional[T]]:
+def key(
+    *,
+    section_name: Optional[str] = ...,
+    key_name: Optional[str] = ...,
+    required: Literal[False],
+    cast: None = ...,
+    default: Optional[T] = ...,
+) -> Union[str, Optional[T]]:
     ...
 
 
 @overload
-def key(*,
-        section_name: Optional[str] = ...,
-        key_name: Optional[str] = ...,
-        required: Literal[True] = ...,
-        cast: Callable[[str], T],
-        default: Optional[T] = ...) -> T:
+def key(
+    *,
+    section_name: Optional[str] = ...,
+    key_name: Optional[str] = ...,
+    required: Literal[True] = ...,
+    cast: Callable[[str], T],
+    default: Optional[T] = ...,
+) -> T:
     ...
 
 
 @overload
-def key(*,
-        section_name: Optional[str] = ...,
-        key_name: Optional[str] = ...,
-        required: Literal[True] = ...,
-        cast: None = ...,
-        default: Optional[T] = ...) -> str:
+def key(
+    *,
+    section_name: Optional[str] = ...,
+    key_name: Optional[str] = ...,
+    required: Literal[True] = ...,
+    cast: None = ...,
+    default: Optional[T] = ...,
+) -> str:
     ...
 
 
-def key(*,
-        section_name: Optional[str] = None,
-        key_name: Optional[str] = None,
-        required: bool = True,
-        cast: Optional[Callable[[str], T]] = None,
-        default: Optional[T] = None) -> Union[Optional[T], str]:
+def key(
+    *,
+    section_name: Optional[str] = None,
+    key_name: Optional[str] = None,
+    required: bool = True,
+    cast: Optional[Callable[[str], T]] = None,
+    default: Optional[T] = None,
+) -> Union[Optional[T], str]:
     """
     Provides a getter for a configuration key
     Parameters
@@ -102,9 +115,7 @@ def key(*,
     # In general, this should not store any state since the class property is shared across instances. However, the
     # property name will be the same across all instances, so when this is looked up the first time it is ok to store
     # it.
-    _mutable_state = {
-        'key_name': key_name.upper() if key_name is not None else None
-    }
+    _mutable_state = {"key_name": key_name.upper() if key_name is not None else None}
 
     def getter_method(self: Config) -> Union[Optional[T], str]:
         """
@@ -115,10 +126,10 @@ def key(*,
 
         resolved_section_name = self._resolve_section_name(section_name)
 
-        resolved_key_name = _mutable_state['key_name']
+        resolved_key_name = _mutable_state["key_name"]
         if resolved_key_name is None:
             resolved_key_name = self._resolve_key_name(getter)
-            _mutable_state['key_name'] = resolved_key_name
+            _mutable_state["key_name"] = resolved_key_name
 
         # If value is cached, just use the cached value
         cached_value: Union[T, str] = self._provider.get_from_cache(resolved_section_name, resolved_key_name)
@@ -171,7 +182,7 @@ def group_key(cls: Type[TConfig], *, group_section_name: Optional[str] = None, h
     """
 
     def wrapped_f_getter(self: Config) -> TConfig:
-        attr_name = '_' + self._get_property_name_from_object(wrapped_f)
+        attr_name = "_" + self._get_property_name_from_object(wrapped_f)
         if not hasattr(self, attr_name):
             setattr(self, attr_name, cls(provider=self._provider))
         return typing.cast(TConfig, getattr(self, attr_name))
@@ -185,12 +196,14 @@ def group_key(cls: Type[TConfig], *, group_section_name: Optional[str] = None, h
 def section(section_name: str) -> Callable[[Type[TConfig]], Type[TConfig]]:
     def _section(cls: Type[TConfig]) -> Type[TConfig]:
         class SectionConfig(cls):  # type: ignore
-            def __init__(self, *args, **kwargs):   # type: ignore
+            def __init__(self, *args, **kwargs):  # type: ignore
                 super().__init__(*args, section_name=section_name, **kwargs)
+
         SectionConfig.__name__ = cls.__name__
         SectionConfig.__qualname__ = cls.__qualname__
 
         return SectionConfig
+
     return _section
 
 
@@ -198,13 +211,18 @@ class Config:
     """
     Base class for all configuration objects
     """
-    _composed_config_registration_string = '__composed_config__'
-    _config_key_registration_string = '__config_key__'
-    _config_key_key_name_string = '__config_key_key_name__'
-    _config_key_section_name_string = '__config_key_section_name__'
 
-    def __init__(self, section_name: Optional[str] = None, sources: Optional[List[ConfigSource]] = None,
-                 provider: Optional[ConfigProvider] = None):
+    _composed_config_registration_string = "__composed_config__"
+    _config_key_registration_string = "__config_key__"
+    _config_key_key_name_string = "__config_key_key_name__"
+    _config_key_section_name_string = "__config_key_section_name__"
+
+    def __init__(
+        self,
+        section_name: Optional[str] = None,
+        sources: Optional[List[ConfigSource]] = None,
+        provider: Optional[ConfigProvider] = None,
+    ):
         if provider is None:
             provider = ConfigProvider(sources=sources)
         elif not isinstance(provider, ConfigProvider):
@@ -214,13 +232,17 @@ class Config:
 
     def __repr__(self) -> str:
         key_names = self.get_registered_properties()
-        group_key_info = inspect.getmembers(self.__class__, predicate=lambda x: self.is_member_registered(
-            x, Config._composed_config_registration_string))
+        group_key_info = inspect.getmembers(
+            self.__class__,
+            predicate=lambda x: self.is_member_registered(x, Config._composed_config_registration_string),
+        )
 
-        joined_repr = ', '.join(chain(
-            (f"{k}={getattr(self, k)!r}" for k in key_names),
-            (f"{k}={getattr(self, k)!r}" for k, _ in group_key_info)
-        ))
+        joined_repr = ", ".join(
+            chain(
+                (f"{k}={getattr(self, k)!r}" for k in key_names),
+                (f"{k}={getattr(self, k)!r}" for k, _ in group_key_info),
+            )
+        )
 
         return f"{self.__class__.__name__}({joined_repr})"
 
@@ -243,16 +265,16 @@ class Config:
         return [f[0] for f in all_properties]
 
     def _get_registered_properties_with_values(self) -> List[Tuple[str, Any]]:
-        return inspect.getmembers(self.__class__, predicate=lambda x: self.is_member_registered(
-            x, Config._config_key_registration_string))
+        return inspect.getmembers(
+            self.__class__, predicate=lambda x: self.is_member_registered(x, Config._config_key_registration_string)
+        )
 
     def _resolve_section_name(self, key_section_name: Optional[str]) -> str:
         if key_section_name is not None:
             return key_section_name
 
         if self._section_name is None:
-            raise ValueError(
-                "Section name was not specified by the key function or the section class decorator.")
+            raise ValueError("Section name was not specified by the key function or the section class decorator.")
         return self._section_name
 
     def _resolve_key_name(self, property_object: property) -> str:
@@ -274,7 +296,7 @@ class Config:
         else:
             return False
 
-    def get_registered_composed_config(self) -> List['Config']:
+    def get_registered_composed_config(self) -> List["Config"]:
         """
         Gets a list of all composed configs or "sub configs",
         that is configs which are registered with the group_key function.
@@ -284,8 +306,10 @@ class Config:
         A list of Config subclasses which have been registered
         """
 
-        all_properties = inspect.getmembers(self.__class__, predicate=lambda x: self.is_member_registered(
-            x, Config._composed_config_registration_string))
+        all_properties = inspect.getmembers(
+            self.__class__,
+            predicate=lambda x: self.is_member_registered(x, Config._composed_config_registration_string),
+        )
         return [getattr(self, f[0]) if isinstance(f[1], property) else f[1](self) for f in all_properties]
 
     def read(self) -> None:
@@ -333,7 +357,9 @@ class Config:
 
                 key_property_object: property = getattr(self.__class__, k)
 
-                section_name = self._resolve_section_name(getattr(key_property_object.fget, self._config_key_section_name_string))
+                section_name = self._resolve_section_name(
+                    getattr(key_property_object.fget, self._config_key_section_name_string)
+                )
                 key_name = self._resolve_key_name(key_property_object)
                 self._provider.add_to_cache(section_name, key_name, v)
 

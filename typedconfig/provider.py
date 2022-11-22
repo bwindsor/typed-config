@@ -10,6 +10,7 @@ class ConfigProvider:
     Configuration provider keeping the cache and sources that can be shared
     across the configuration objects
     """
+
     def __init__(self, sources: Optional[List[ConfigSource]] = None):
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._config_sources: List[ConfigSource] = []
@@ -39,10 +40,10 @@ class ConfigProvider:
 
         # Go through the config sources until we find one which supplies the requested value
         for source in self._config_sources:
-            logger.debug(f'Looking for config value {section_name}/{key_name} in {source}')
+            logger.debug(f"Looking for config value {section_name}/{key_name} in {source}")
             value = source.get_config_value(section_name, key_name)
             if value is not None:
-                logger.debug(f'Found config value {section_name}/{key_name} in {source}')
+                logger.debug(f"Found config value {section_name}/{key_name} in {source}")
                 break
 
         return value
@@ -50,7 +51,7 @@ class ConfigProvider:
     def add_source(self, source: ConfigSource) -> None:
         if not isinstance(source, ConfigSource):
             raise TypeError("Sources must be subclasses of ConfigSource")
-        logger.debug(f'Adding config source of type {source.__class__.__name__} to {self.__class__.__name__}')
+        logger.debug(f"Adding config source of type {source.__class__.__name__} to {self.__class__.__name__}")
         self._config_sources.append(source)
 
     def set_sources(self, sources: List[ConfigSource]) -> None:
@@ -61,7 +62,9 @@ class ConfigProvider:
     def replace_source(self, old_source: ConfigSource, new_source: ConfigSource) -> None:
         if not isinstance(new_source, ConfigSource):
             raise TypeError("Sources must be subclasses of ConfigSource")
-        logger.debug(f'Replacing config source of type {old_source.__class__.__name__} with {new_source.__class__.__name__}')
+        logger.debug(
+            f"Replacing config source of type {old_source.__class__.__name__} with {new_source.__class__.__name__}"
+        )
         for i, source in enumerate(self.config_sources):
             if source is old_source:
                 self.config_sources[i] = new_source
