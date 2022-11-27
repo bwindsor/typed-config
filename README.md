@@ -498,6 +498,43 @@ In this example, if the `ConfigSource` reads the string `"RED"`, the value of `c
 
 Note that the `enum_cast` function is designed to read the *name* of an enum member, not its value (`1`, `2` or `3` in the example above)
 
+### Casting to a `list` with `list_cast`
+If the source contains a list of items, list_cast will parse them as a python list, optionally applying a 
+base_cast function to each element. 
+The default behavior is to call strip() on each element and ignore trailing delimiters.
+
+For example, given the input
+```ini
+nums = 1, 2, 3, 4,
+```
+
+Then you could use
+
+```python
+nums = key(cast=list_cast())
+```
+to read the string input and cast it to `["1", "2", "3", "4"]`
+
+```python
+key(cast=list_cast(base_cast=int))
+```
+Would cast the input to `[1, 2, 3, 4]`
+
+```python
+key(cast=list_cast(ignore_trailing_delimiter=False))
+```
+Would cast the input to `["1", "2", "3", "4", ""]`
+
+```python
+key(cast=list_cast(strip=False))
+```
+Would cast the input to `["1", " 2", " 3", " 4"]`
+
+Finally, if a delimiter other that "," is used - say the input string is `"1:2:3:4"` - that can be handled like
+```python
+key(cast=list_cast(delimiter=":"))
+```
+
 ## Contributing
 Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with all versions 3.6-3.9 too.
 
