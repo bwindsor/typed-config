@@ -1,4 +1,4 @@
-from enum import Enum, EnumMeta
+from enum import Enum
 from typing import TypeVar, Callable, Type
 
 TEnum = TypeVar("TEnum", bound="Enum")
