@@ -471,6 +471,33 @@ These are listed here:
 | --- | --- | --- |
 | [typed-config-aws-sources](https://pypi.org/project/typed-config-aws-sources) | `typedconfig_awssource` | Config sources using `boto3` to get config e.g. from S3 or DynamoDB
 
+
+## Cast function library
+The `typedconfig.casts` module contains helper functions that implement common casting operations. These would generally be passed to the `cast` parameter of the `key()` function
+
+### Casting to an `Enum` type with `enum_cast`
+the `enum_cast` function converts a string input from a source to an member of an `Enum` type. 
+
+For example:
+```python
+from enum import Enum
+from typedconfig.casts import enum_cast
+from typedconfig import Config, key
+...
+class ColorEnum(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+...
+
+class MyConfig(Config):
+    color = key(cast=enum_cast(ColorEnum))
+```
+
+In this example, if the `ConfigSource` reads the string `"RED"`, the value of `color` will be set to `ColorEnum.RED`
+
+Note that the `enum_cast` function is designed to read the *name* of an enum member, not its value (`1`, `2` or `3` in the example above)
+
 ## Contributing
 Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with all versions 3.6-3.9 too.
 
