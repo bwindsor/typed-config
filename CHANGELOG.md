@@ -67,3 +67,6 @@ Drop running tests on Python 3.6 since it is end of life.
 
 ### v1.3.1
 As part of a solution for issue #12, add cast submodule with enum_cast helper function
+
+### v1.3.2
+Add list_cast to the the cast submodule and document it
