@@ -30,16 +30,21 @@ def enum_cast(enum_type: Type[TEnum]) -> Callable[[str], TEnum]:
 
 
 @overload
-def list_cast(base_cast=None, delimiter=..., ignore_trailing_delimiter=..., strip=...) -> Callable[[str], List[str]]:
+def list_cast(
+    base_cast: None = ...,
+    delimiter: str = ...,
+    ignore_trailing_delimiter: bool = ...,
+    strip: bool = ...,
+) -> Callable[[str], List[str]]:
     ...
 
 
 @overload
 def list_cast(
-    base_cast=Callable[[str], T],
-    delimiter=...,
-    ignore_trailing_delimiter=...,
-    strip=...,
+    base_cast: Optional[Callable[[str], T]] = ...,
+    delimiter: str = ...,
+    ignore_trailing_delimiter: bool = ...,
+    strip: bool = ...,
 ) -> Callable[[str], List[T]]:
     ...
 
@@ -77,9 +82,16 @@ def list_cast(
     """
 
     def getter(s: str) -> Union[List[T], List[str]]:
-        # if the string is empty string, allways return empty list
+        # If the string is empty string, allways return empty list
+        # The empty list needs an explicit type to make mypy happy
         if len(s) == 0:
-            return []
+            if base_cast is None:
+                str_list: List[str] = []
+                return str_list
+            else:
+                t_list: List[T] = []
+                return t_list
+
         str_list = s.split(delimiter)
 
         # remove whitespace if the strip arg is True
