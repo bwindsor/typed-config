@@ -37,6 +37,7 @@ def test_invalid_enum_cast():
         ),
         ("a, b, c, d,", dict(), ["a", "b", "c", "d"]),
         ("a, b, c, d,", dict(strip=False), ["a", " b", " c", " d"]),
+        ("", dict(), []),
         ("", dict(base_cast=int), []),
     ],
 )
