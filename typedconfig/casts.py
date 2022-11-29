@@ -14,7 +14,7 @@ def enum_cast(enum_type: Type[TEnum]) -> Callable[[str], TEnum]:
     ----------
     enum_type
        The EnumType that the string input should be cast to
-       
+
     Returns
     -------
     Cast method that can be used with the key() function
@@ -30,12 +30,7 @@ def enum_cast(enum_type: Type[TEnum]) -> Callable[[str], TEnum]:
 
 
 @overload
-def list_cast(
-    base_cast=None,
-    delimiter=...,
-    ignore_trailing_delimiter=...,
-    strip=...
-) -> Callable[[str], List[str]]:
+def list_cast(base_cast=None, delimiter=..., ignore_trailing_delimiter=..., strip=...) -> Callable[[str], List[str]]:
     ...
 
 
@@ -61,19 +56,19 @@ def list_cast(
 
     Parameters
     ----------
-    base_cast: 
+    base_cast:
         function to be applied to each member of the parsed list before returning. If base_cast is None, the
         cast function will return a list of strings
-    delimiter: 
+    delimiter:
         delimiter to use to separate elements when parsing the input. Default is a comma.
-    ignore_trailing_delimiter: 
-        How to interpret a trailing delimiter, as in "one,two,three,". 
+    ignore_trailing_delimiter:
+        How to interpret a trailing delimiter, as in "one,two,three,".
         If True (the default) the funal comma will be dropped
         If False, the list would end with a single empty string
     strip:
-        Whether to call strip() on each element of the parsed strings. 
+        Whether to call strip() on each element of the parsed strings.
         If True (the default) an input like "a, b, c" will be cast as ["a", "b", "c"]
-        If False an input like "a, b, c" will be cast as ["a", "b ", "c "], with no 
+        If False an input like "a, b, c" will be cast as ["a", "b ", "c "], with no
         extraneous whitespace removed
 
     Returns
