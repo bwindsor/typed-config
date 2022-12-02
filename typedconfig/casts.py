@@ -81,7 +81,7 @@ def tuple_cast(
     Cast method that can be used with the key() function
     """
 
-    def getter(s: str) -> Union[tuple[T, ...], tuple[str, ...]]:
+    def getter(s: str) -> Union[Tuple[T, ...], Tuple[str, ...]]:
         # If the string is empty string, allways return empty list
         # The empty list needs an explicit type to make mypy happy
         if len(s) == 0:

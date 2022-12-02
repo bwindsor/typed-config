@@ -42,6 +42,6 @@ def test_invalid_enum_cast():
         ("", dict(ignore_trailing_delimiter=False), tuple()),
     ],
 )
-def test_tuple_cast(prop_val: str, args: dict[str, Any], expected_value: tuple[Any]):
+def test_tuple_cast(prop_val: str, args: Dict[str, Any], expected_value: Tuple[Any]):
     getter = tuple_cast(**args)
     assert getter(prop_val) == expected_value

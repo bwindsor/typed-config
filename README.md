@@ -498,8 +498,8 @@ In this example, if the `ConfigSource` reads the string `"RED"`, the value of `c
 
 Note that the `enum_cast` function is designed to read the *name* of an enum member, not its value (`1`, `2` or `3` in the example above)
 
-### Casting to a `list` with `list_cast`
-If the source contains a list of items, list_cast will parse them as a python list, optionally applying a 
+### Casting to a `tuple` with `tuple_cast`
+If the source contains a list of items, `tuple_cast` will parse them as a python tuple, optionally applying a 
 base_cast function to each element. 
 The default behavior is to call strip() on each element and ignore trailing delimiters.
 
@@ -511,28 +511,28 @@ nums = 1, 2, 3, 4,
 Then you could use
 
 ```python
-nums = key(cast=list_cast())
+nums = key(cast=tuple_cast())
 ```
-to read the string input and cast it to `["1", "2", "3", "4"]`
+to read the string input and cast it to `("1", "2", "3", "4")`
 
 ```python
-key(cast=list_cast(base_cast=int))
+key(cast=tuple_cast(base_cast=int))
 ```
-Would cast the input to `[1, 2, 3, 4]`
+Would cast the input to `(1, 2, 3, 4)`
 
 ```python
-key(cast=list_cast(ignore_trailing_delimiter=False))
+key(cast=tuple_cast(ignore_trailing_delimiter=False))
 ```
-Would cast the input to `["1", "2", "3", "4", ""]`
+Would cast the input to `("1", "2", "3", "4", "")`
 
 ```python
-key(cast=list_cast(strip=False))
+key(cast=tuple_cast(strip=False))
 ```
-Would cast the input to `["1", " 2", " 3", " 4"]`
+Would cast the input to `("1", " 2", " 3", " 4")`
 
 Finally, if a delimiter other that "," is used - say the input string is `"1:2:3:4"` - that can be handled like
 ```python
-key(cast=list_cast(delimiter=":"))
+key(cast=tuple_cast(delimiter=":"))
 ```
 
 ## Contributing
