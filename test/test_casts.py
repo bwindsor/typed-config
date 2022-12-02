@@ -10,12 +10,12 @@ class ExampleEnum(Enum):
     BLUE = 3
 
 
-def test_valid_enum_cast():
+def test_valid_enum_cast() -> None:
     getter = enum_cast(ExampleEnum)
     assert getter("BLUE") == ExampleEnum.BLUE
 
 
-def test_invalid_enum_cast():
+def test_invalid_enum_cast() -> None:
     getter = enum_cast(ExampleEnum)
     with pytest.raises(KeyError):
         getter("PURPLE")
@@ -42,6 +42,6 @@ def test_invalid_enum_cast():
         ("", dict(ignore_trailing_delimiter=False), tuple()),
     ],
 )
-def test_tuple_cast(prop_val: str, args: Dict[str, Any], expected_value: Tuple[Any]):
+def test_tuple_cast(prop_val: str, args: Dict[str, Any], expected_value: Tuple[Any]) -> None:
     getter = tuple_cast(**args)
     assert getter(prop_val) == expected_value

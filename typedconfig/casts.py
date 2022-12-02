@@ -100,12 +100,12 @@ def tuple_cast(
 
         # remove the final element if it is empty and we should ignore trailing delimiters
         if ignore_trailing_delimiter and len(str_list[-1]) == 0:
-            str_list = str_list[:-1]
+            str_list.pop()
 
         # no base_cast means just a list of str
         if base_cast is None:
             return tuple(str_list)
 
-        return tuple([base_cast(s) for s in str_list])
+        return tuple(base_cast(s) for s in str_list)
 
     return getter
