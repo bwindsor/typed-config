@@ -1,7 +1,7 @@
 import pytest
-
 from enum import Enum
-from typedconfig.casts import enum_cast, list_cast
+from typing import Dict, Tuple, Any
+from typedconfig.casts import enum_cast, tuple_cast
 
 
 class ExampleEnum(Enum):
@@ -24,23 +24,24 @@ def test_invalid_enum_cast():
 @pytest.mark.parametrize(
     "prop_val, args, expected_value",
     [
-        ("a,b,c,d", dict(), ["a", "b", "c", "d"]),
-        ("1, 2,  3,  4 ", dict(base_cast=int), [1, 2, 3, 4]),
-        ("a,b,c,d,", dict(), ["a", "b", "c", "d"]),
-        ("a,b,c,d,", dict(ignore_trailing_delimiter=False), ["a", "b", "c", "d", ""]),
-        ("a+b+c+d", dict(delimiter="+"), ["a", "b", "c", "d"]),
-        ("a//b//c//d//", dict(delimiter="//"), ["a", "b", "c", "d"]),
+        ("a,b,c,d", dict(), ("a", "b", "c", "d")),
+        ("1, 2,  3,  4 ", dict(base_cast=int), (1, 2, 3, 4)),
+        ("a,b,c,d,", dict(), ("a", "b", "c", "d")),
+        ("a,b,c,d,", dict(ignore_trailing_delimiter=False), ("a", "b", "c", "d", "")),
+        ("a+b+c+d", dict(delimiter="+"), ("a", "b", "c", "d")),
+        ("a//b//c//d//", dict(delimiter="//"), ("a", "b", "c", "d")),
         (
             "RED, BLUE, GREEN",
             dict(base_cast=enum_cast(ExampleEnum)),
-            [ExampleEnum.RED, ExampleEnum.BLUE, ExampleEnum.GREEN],
+            (ExampleEnum.RED, ExampleEnum.BLUE, ExampleEnum.GREEN),
         ),
-        ("a, b, c, d,", dict(), ["a", "b", "c", "d"]),
-        ("a, b, c, d,", dict(strip=False), ["a", " b", " c", " d"]),
-        ("", dict(), []),
-        ("", dict(base_cast=int), []),
+        ("a, b, c, d,", dict(), ("a", "b", "c", "d")),
+        ("a, b, c, d,", dict(strip=False), ("a", " b", " c", " d")),
+        ("", dict(), tuple()),
+        ("", dict(base_cast=int), tuple()),
+        ("", dict(ignore_trailing_delimiter=False), tuple()),
     ],
 )
-def test_list_cast(prop_val, args, expected_value):
-    getter = list_cast(**args)
+def test_tuple_cast(prop_val: str, args: dict[str, Any], expected_value: tuple[Any]):
+    getter = tuple_cast(**args)
     assert getter(prop_val) == expected_value

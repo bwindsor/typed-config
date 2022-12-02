@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, List, Optional, Type, TypeVar, Union, overload
+from typing import Callable, Optional, Type, TypeVar, Tuple, Union, overload
 
 T = TypeVar("T")
 TEnum = TypeVar("TEnum", bound="Enum")
@@ -30,31 +30,31 @@ def enum_cast(enum_type: Type[TEnum]) -> Callable[[str], TEnum]:
 
 
 @overload
-def list_cast(
-    base_cast: None = ...,
+def tuple_cast(
+    base_cast: None = None,
     delimiter: str = ...,
     ignore_trailing_delimiter: bool = ...,
     strip: bool = ...,
-) -> Callable[[str], List[str]]:
+) -> Callable[[str], Tuple[str, ...]]:
     ...
 
 
 @overload
-def list_cast(
-    base_cast: Optional[Callable[[str], T]] = ...,
+def tuple_cast(
+    base_cast: Callable[[str], T],
     delimiter: str = ...,
     ignore_trailing_delimiter: bool = ...,
     strip: bool = ...,
-) -> Callable[[str], List[T]]:
+) -> Callable[[str], Tuple[T, ...]]:
     ...
 
 
-def list_cast(
+def tuple_cast(
     base_cast: Optional[Callable[[str], T]] = None,
     delimiter: str = ",",
     ignore_trailing_delimiter: bool = True,
     strip: bool = True,
-) -> Callable[[str], Union[List[T], List[str]]]:
+) -> Callable[[str], Union[Tuple[T, ...], Tuple[str, ...]]]:
     """
     A cast function that creates a list based on the given base_cast function.
     If no base_cast method is provided, returns a list of str.
@@ -81,16 +81,16 @@ def list_cast(
     Cast method that can be used with the key() function
     """
 
-    def getter(s: str) -> Union[List[T], List[str]]:
+    def getter(s: str) -> Union[tuple[T, ...], tuple[str, ...]]:
         # If the string is empty string, allways return empty list
         # The empty list needs an explicit type to make mypy happy
         if len(s) == 0:
             if base_cast is None:
-                str_list: List[str] = []
-                return str_list
+                str_tuple: Tuple[str, ...] = tuple()
+                return str_tuple
             else:
-                t_list: List[T] = []
-                return t_list
+                t_tuple: Tuple[T, ...] = tuple()
+                return t_tuple
 
         str_list = s.split(delimiter)
 
@@ -104,8 +104,8 @@ def list_cast(
 
         # no base_cast means just a list of str
         if base_cast is None:
-            return str_list
+            return tuple(str_list)
 
-        return [base_cast(s) for s in str_list]
+        return tuple([base_cast(s) for s in str_list])
 
     return getter
