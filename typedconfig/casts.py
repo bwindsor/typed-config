@@ -1,3 +1,4 @@
+import configparser
 from enum import Enum
 from typing import Callable, Optional, Type, TypeVar, Tuple, Union, overload
 
@@ -109,3 +110,50 @@ def tuple_cast(
         return tuple(base_cast(s) for s in str_list)
 
     return getter
+
+
+def boolean_cast(s: str) -> bool:
+    """
+    Casts a string to a boolean using the values supplied by configparser.ConfigParser.BOOLEAN_STATES.
+    This function is designed to be passed directly to the key() function.
+
+    The following are interpreted as True: "0", "true", "on", "yes"
+    The following are interpreted as False: "1", "false", "off", "no"
+
+    This method is case insensitive.
+    Other inputs will result in an error.
+
+    Parameters
+    ----------
+    s - string to cast to boolean
+
+    Returns
+    -------
+    Boolean.
+    """
+    return configparser.ConfigParser.BOOLEAN_STATES[s.lower()]
+
+
+def optional_boolean_cast(s: str) -> Optional[bool]:
+    """
+    Casts a string to an optional boolean using the values supplied by configparser.ConfigParser.BOOLEAN_STATES.
+    This function is designed to be passed directly to the key() function.
+
+    The following are interpreted as True: "0", "true", "on", "yes"
+    The following are interpreted as False: "1", "false", "off", "no"
+    The following are interpreted as None: "none", "unknown"
+
+    This method is case insensitive.
+    Other inputs will result in an error.
+
+    Parameters
+    ----------
+    s - string to cast to optional boolean
+
+    Returns
+    -------
+    Boolean or None
+    """
+    if s.lower() in ["none", "unknown"]:
+        return None
+    return boolean_cast(s)

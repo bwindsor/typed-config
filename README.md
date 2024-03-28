@@ -476,7 +476,7 @@ These are listed here:
 The `typedconfig.casts` module contains helper functions that implement common casting operations. These would generally be passed to the `cast` parameter of the `key()` function
 
 ### Casting to an `Enum` type with `enum_cast`
-the `enum_cast` function converts a string input from a source to an member of an `Enum` type. 
+the `enum_cast` function converts a string input from a source to a member of an `Enum` type. 
 
 For example:
 ```python
@@ -534,6 +534,38 @@ Finally, if a delimiter other that "," is used - say the input string is `"1:2:3
 ```python
 key(cast=tuple_cast(delimiter=":"))
 ```
+
+### Casting to a `bool` with `boolean_cast`
+
+If the source is a boolean value, it can be converted to Python's `True` or `False` using this cast.
+
+```python
+key(cast=boolean_cast)
+```
+
+`boolean_cast` supports the following values and is case-insensitive. Any other values will result in a `KeyError` while parsing.
+
+Value | Strings
+--- | ---
+`True` | `"true"`, `"yes"`, `"on"`, `"1"`
+`False` | `"false"`, `"no"`, `"off"`, `"0"`
+
+### Casting to an `Optional[bool]` with `optional_boolean_cast`
+
+If the source is a boolean value which can also be `None`, it can be converted to Python's `True` or `False` or `None` using this cast.
+
+```python
+key(cast=optional_boolean_cast)
+```
+
+`optional_boolean_cast` supports the following values and is case-insensitive. Any other values will result in a `KeyError` while parsing.
+
+Value | Strings
+--- | ---
+`True` | `"true"`, `"yes"`, `"on"`, `"1"`
+`False` | `"false"`, `"no"`, `"off"`, `"0"`
+`None` | `"none"`, `"unknown"`
+
 
 ## Contributing
 Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with all versions 3.6-3.9 too.

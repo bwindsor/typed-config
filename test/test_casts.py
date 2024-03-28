@@ -1,7 +1,8 @@
 import pytest
 from enum import Enum
-from typing import Dict, Tuple, Any
-from typedconfig.casts import enum_cast, tuple_cast
+from typing import Dict, Tuple, Any, Union
+from typedconfig.casts import enum_cast, tuple_cast, boolean_cast, optional_boolean_cast
+from contextlib import nullcontext
 
 
 class ExampleEnum(Enum):
@@ -45,3 +46,53 @@ def test_invalid_enum_cast() -> None:
 def test_tuple_cast(prop_val: str, args: Dict[str, Any], expected_value: Tuple[Any]) -> None:
     getter = tuple_cast(**args)
     assert getter(prop_val) == expected_value
+
+
+@pytest.mark.parametrize("value,expected_output", [
+    ("true", True),
+    ("True", True),
+    ("false", False),
+    ("False", False),
+    ("yes", True),
+    ("Yes", True),
+    ("no", False),
+    ("No", False),
+    ("on", True),
+    ("On", True),
+    ("off", False),
+    ("Off", False),
+    ("0", False),
+    ("1", True),
+    ("none", KeyError)
+])
+def test_boolean_cast(value: str, expected_output: Union[bool, Exception]):
+    with nullcontext() if type(expected_output) is bool else pytest.raises(expected_output):
+        result = boolean_cast(value)
+        assert result == expected_output
+
+
+@pytest.mark.parametrize("value,expected_output", [
+    ("true", True),
+    ("True", True),
+    ("false", False),
+    ("False", False),
+    ("yes", True),
+    ("Yes", True),
+    ("no", False),
+    ("No", False),
+    ("on", True),
+    ("On", True),
+    ("off", False),
+    ("Off", False),
+    ("0", False),
+    ("1", True),
+    ("None", None),
+    ("none", None),
+    ("Unknown", None),
+    ("unknown", None),
+    ("other", KeyError),
+])
+def test_optional_boolean_cast(value: str, expected_output: Union[bool, None, Exception]):
+    with nullcontext() if (type(expected_output) is bool or expected_output is None) else pytest.raises(expected_output):
+        result = optional_boolean_cast(value)
+        assert result == expected_output
