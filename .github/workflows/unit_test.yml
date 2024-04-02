@@ -25,10 +25,13 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Check typing
+        run: mypy typedconfig --strict
+      - name: Check code formatting
+        run: black typedconfig test --check
       - name: Run unit tests
-        run: |
-          pip install -r requirements.txt
-          mypy typedconfig --strict
-          black typedconfig test --check
-          pytest --cov
-          codecov
+        run: pytest --cov
+      - name: Upload code coverage
+        run: codecov
