@@ -80,5 +80,5 @@ Add `CmdConfigSource` and documentation
 ### v2.0.0
 Drop support for Python 3.7 since it is end of life.
 
-### v2.0.1
+### v2.0.1, 2.0.2
 No user facing changes, fixing CI release process.

@@ -21,7 +21,7 @@ jobs:
           python-version: "3.x"
       - name: build release distributions
         run: |
-          pip install twine
+          pip install twine setuptools
           python setup.py sdist bdist_wheel
           twine check dist/*
       - name: Store dists as artifacts
