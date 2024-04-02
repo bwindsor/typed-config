@@ -99,8 +99,8 @@ def test_boolean_cast(value: str, expected_output: Union[bool, Exception]):
     ],
 )
 def test_optional_boolean_cast(value: str, expected_output: Union[bool, None, Exception]):
-    with nullcontext() if (type(expected_output) is bool or expected_output is None) else pytest.raises(
-        expected_output
+    with (
+        nullcontext() if (type(expected_output) is bool or expected_output is None) else pytest.raises(expected_output)
     ):
         result = optional_boolean_cast(value)
         assert result == expected_output

@@ -36,8 +36,7 @@ def tuple_cast(
     delimiter: str = ...,
     ignore_trailing_delimiter: bool = ...,
     strip: bool = ...,
-) -> Callable[[str], Tuple[str, ...]]:
-    ...
+) -> Callable[[str], Tuple[str, ...]]: ...
 
 
 @overload
@@ -46,8 +45,7 @@ def tuple_cast(
     delimiter: str = ...,
     ignore_trailing_delimiter: bool = ...,
     strip: bool = ...,
-) -> Callable[[str], Tuple[T, ...]]:
-    ...
+) -> Callable[[str], Tuple[T, ...]]: ...
 
 
 def tuple_cast(

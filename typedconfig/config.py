@@ -39,8 +39,7 @@ def key(
     required: Literal[False],
     cast: Callable[[str], T],
     default: T,
-) -> T:
-    ...
+) -> T: ...
 
 
 @overload
@@ -51,8 +50,7 @@ def key(
     required: Literal[False],
     cast: Callable[[str], T],
     default: None = ...,
-) -> Optional[T]:
-    ...
+) -> Optional[T]: ...
 
 
 @overload
@@ -63,8 +61,7 @@ def key(
     required: Literal[False],
     cast: None = ...,
     default: Optional[T] = ...,
-) -> Union[str, Optional[T]]:
-    ...
+) -> Union[str, Optional[T]]: ...
 
 
 @overload
@@ -75,8 +72,7 @@ def key(
     required: Literal[True] = ...,
     cast: Callable[[str], T],
     default: Optional[T] = ...,
-) -> T:
-    ...
+) -> T: ...
 
 
 @overload
@@ -87,8 +83,7 @@ def key(
     required: Literal[True] = ...,
     cast: None = ...,
     default: Optional[T] = ...,
-) -> str:
-    ...
+) -> str: ...
 
 
 def key(
