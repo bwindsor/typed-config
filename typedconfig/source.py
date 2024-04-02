@@ -94,7 +94,7 @@ class CmdConfigSource(ConfigSource):
     def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
         sys_argv_lower = [x.lower() for x in sys.argv]
         arg_name = f"{self._prefix}{section_name.lower()}_{key_name.lower()}"
-        parser = argparse.ArgumentParser(allow_abbrev=False, exit_on_error=False)
+        parser = ErrorCatchingArgumentParser(allow_abbrev=False)
         parser.add_argument("--" + arg_name, type=str)
         parsed_args, rest = parser.parse_known_args(sys_argv_lower)
         # Attribute should always exist, but will be None if the argument was not found
@@ -102,3 +102,8 @@ class CmdConfigSource(ConfigSource):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__qualname__}(prefix={repr(self.prefix)})>"
+
+
+class ErrorCatchingArgumentParser(argparse.ArgumentParser):
+    def exit(self, status=0, message=None):
+        raise argparse.ArgumentError(None, message)
