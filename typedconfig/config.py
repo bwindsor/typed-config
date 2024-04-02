@@ -3,11 +3,7 @@ import typing
 from itertools import chain
 from typing import TypeVar, List, Optional, Callable, Type, Union, Tuple, Any, overload, Dict
 
-if sys.version_info >= (3, 8):
-    from typing import Literal
-else:
-    # Python <= 3.7
-    from typing_extensions import Literal
+from typing import Literal
 from typedconfig.provider import ConfigProvider
 from typedconfig.source import ConfigSource
 import logging

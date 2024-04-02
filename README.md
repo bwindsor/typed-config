@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/bwindsor/typed-config.svg?branch=master)](https://travis-ci.org/bwindsor/typed-config)
+![Build Status](https://github.com/bwindsor/typed-config/actions/workflows/unit_test.yml/badge.svg)
+![Deploy Status](https://github.com/bwindsor/typed-config/actions/workflows/deploy_pypi.yml/badge.svg)
 [![codecov](https://codecov.io/gh/bwindsor/typed-config/branch/master/graph/badge.svg)](https://codecov.io/gh/bwindsor/typed-config)
 
 # typed-config
@@ -584,7 +585,7 @@ Value | Strings
 
 
 ## Contributing
-Ideas for new features and pull requests are welcome. PRs must come with tests included. This was developed using Python 3.7 but Travis tests run with all versions 3.6-3.9 too.
+Ideas for new features and pull requests are welcome. PRs must come with tests included. This is developed using Python 3.9 but Github actions will run tests with all versions 3.8-3.12 too.
 
 ### Development setup
 1. Clone the git repository
@@ -606,7 +607,7 @@ To run with coverage:
 1. Bump version number in `typedconfig/__version__.py`
 1. Add changes to [CHANGELOG.md](CHANGELOG.md)
 1. Commit your changes and tag with `git tag -a v0.1.0 -m "Summary of changes"`
-1. Travis will deploy the release to PyPi for you.
+1. Github actions will deploy the release to PyPi for you.
 
 #### Staging release
 If you want to check how a release will look on PyPi before tagging and making it live, you can do the following:

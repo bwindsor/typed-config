@@ -18,8 +18,6 @@ setup(
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
@@ -33,6 +31,5 @@ setup(
     ],
     packages=['typedconfig'],
     package_data={'typedconfig': ['py.typed']},
-    install_requires=['typing-extensions >= 3.10.0; python_version < "3.8.0"'],
     entry_points={}
 )
