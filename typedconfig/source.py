@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, cast
+from typing import Optional, Dict, cast, NoReturn
 from configparser import ConfigParser
 
 
@@ -105,5 +105,5 @@ class CmdConfigSource(ConfigSource):
 
 
 class ErrorCatchingArgumentParser(argparse.ArgumentParser):
-    def exit(self, status: int = 0, message: Optional[str] = None) -> None:
+    def exit(self, status: int = 0, message: Optional[str] = None) -> NoReturn:
         raise argparse.ArgumentError(None, message if message is not None else "")
