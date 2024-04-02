@@ -105,5 +105,5 @@ class CmdConfigSource(ConfigSource):
 
 
 class ErrorCatchingArgumentParser(argparse.ArgumentParser):
-    def exit(self, status: int = 0, message: Optional[str] = None):
-        raise argparse.ArgumentError(None, message)
+    def exit(self, status: int = 0, message: Optional[str] = None) -> None:
+        raise argparse.ArgumentError(None, message if message is not None else "")
