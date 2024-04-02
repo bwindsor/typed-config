@@ -1,4 +1,6 @@
 import os
+import sys
+import argparse
 from abc import ABC, abstractmethod
 from typing import Optional, Dict
 from configparser import ConfigParser
@@ -75,3 +77,28 @@ class DictConfigSource(ConfigSource):
         if section is None:
             return None
         return section.get(key_name.lower(), None)
+
+
+class CmdConfigSource(ConfigSource):
+    def __init__(self, prefix: str = ""):
+        self._init_prefix = prefix
+
+        self._prefix = prefix.lower()
+        if len(self._prefix) > 0:
+            self._prefix += "_"
+
+    @property
+    def prefix(self) -> str:
+        return self._init_prefix
+
+    def get_config_value(self, section_name: str, key_name: str) -> Optional[str]:
+        sys_argv_lower = [x.lower() for x in sys.argv]
+        arg_name = f"{self._prefix}{section_name.lower()}_{key_name.lower()}"
+        parser = argparse.ArgumentParser(allow_abbrev=False, exit_on_error=False)
+        parser.add_argument("--" + arg_name, type=str)
+        parsed_args, rest = parser.parse_known_args(sys_argv_lower)
+        # Attribute should always exist, but will be None if the argument was not found
+        return getattr(parsed_args, arg_name)
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__qualname__}(prefix={repr(self.prefix)})>"

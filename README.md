@@ -423,6 +423,22 @@ It expects data type `Dict[str, Dict[str, str]]`, i.e. such that `string_value =
 
 This is an alternative way of supplying default values instead of using the `default` option when defining your `key`s. Just provide a `DictConfigSource` as the lowest priority source, containing your defaults.
 
+#### `CmdConfigSource`
+This reads configuration from command line arguments
+```python
+from typedconfig.source import CmdConfigSource
+source = CmdConfigSource(prefix="XYZ")
+# OR just
+source = CmdConfigSource()
+```
+
+It will use Python's `argparse` library to extract the relevant command line arguments. It takes an optional input argument, the `prefix`. This can be useful if you also accept other command line arguments and wish to avoid clashes with your own arguments.
+
+* Arguments will be expected in the format `--{PREFIX}_{SECTION}_{KEY} {VALUE}`, for example `--xyz_database_port 2000`
+* If no `prefix` is provided, arguments will be expected in the format `--{SECTION}_{KEY} {VALUE}`, for example `--database_port 2000`
+
+The names are case insensitive so, for example, `--DATABASE_PORT` and `--database_port` would be treated the same.
+
 ### Writing your own `ConfigSource`s
 An abstract base class `ConfigSource` is supplied. You should extend it and implement the method `get_config_value` as demonstrated below, which takes a section name and key name, and returns either a `str` config value, or `None` if the value could not be found. It should not error if the value cannot be found, `Config` will throw an error later if it still can't find the value in any of its other available sources. To make it easier for the user try to make your source case insensitive.
 
