@@ -48,51 +48,59 @@ def test_tuple_cast(prop_val: str, args: Dict[str, Any], expected_value: Tuple[A
     assert getter(prop_val) == expected_value
 
 
-@pytest.mark.parametrize("value,expected_output", [
-    ("true", True),
-    ("True", True),
-    ("false", False),
-    ("False", False),
-    ("yes", True),
-    ("Yes", True),
-    ("no", False),
-    ("No", False),
-    ("on", True),
-    ("On", True),
-    ("off", False),
-    ("Off", False),
-    ("0", False),
-    ("1", True),
-    ("none", KeyError)
-])
+@pytest.mark.parametrize(
+    "value,expected_output",
+    [
+        ("true", True),
+        ("True", True),
+        ("false", False),
+        ("False", False),
+        ("yes", True),
+        ("Yes", True),
+        ("no", False),
+        ("No", False),
+        ("on", True),
+        ("On", True),
+        ("off", False),
+        ("Off", False),
+        ("0", False),
+        ("1", True),
+        ("none", KeyError),
+    ],
+)
 def test_boolean_cast(value: str, expected_output: Union[bool, Exception]):
     with nullcontext() if type(expected_output) is bool else pytest.raises(expected_output):
         result = boolean_cast(value)
         assert result == expected_output
 
 
-@pytest.mark.parametrize("value,expected_output", [
-    ("true", True),
-    ("True", True),
-    ("false", False),
-    ("False", False),
-    ("yes", True),
-    ("Yes", True),
-    ("no", False),
-    ("No", False),
-    ("on", True),
-    ("On", True),
-    ("off", False),
-    ("Off", False),
-    ("0", False),
-    ("1", True),
-    ("None", None),
-    ("none", None),
-    ("Unknown", None),
-    ("unknown", None),
-    ("other", KeyError),
-])
+@pytest.mark.parametrize(
+    "value,expected_output",
+    [
+        ("true", True),
+        ("True", True),
+        ("false", False),
+        ("False", False),
+        ("yes", True),
+        ("Yes", True),
+        ("no", False),
+        ("No", False),
+        ("on", True),
+        ("On", True),
+        ("off", False),
+        ("Off", False),
+        ("0", False),
+        ("1", True),
+        ("None", None),
+        ("none", None),
+        ("Unknown", None),
+        ("unknown", None),
+        ("other", KeyError),
+    ],
+)
 def test_optional_boolean_cast(value: str, expected_output: Union[bool, None, Exception]):
-    with nullcontext() if (type(expected_output) is bool or expected_output is None) else pytest.raises(expected_output):
+    with nullcontext() if (type(expected_output) is bool or expected_output is None) else pytest.raises(
+        expected_output
+    ):
         result = optional_boolean_cast(value)
         assert result == expected_output

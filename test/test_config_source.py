@@ -97,13 +97,13 @@ def test_environment_config_source():
     do_assertions(source, "<EnvironmentConfigSource(prefix='')>")
 
 
-@patch('sys.argv', ["name.py", "--S_A", "1", "another_thing", "--S_B", "2", "--extra", "hello", "--no_value"])
+@patch("sys.argv", ["name.py", "--S_A", "1", "another_thing", "--S_B", "2", "--extra", "hello", "--no_value"])
 def test_cmd_config_source():
     source = CmdConfigSource()
     do_assertions(source, "<CmdConfigSource(prefix='')>")
 
 
-@patch('sys.argv', ["name.py", "--prefix_S_A", "1", "--PREFiX_S_B", "2"])
+@patch("sys.argv", ["name.py", "--prefix_S_A", "1", "--PREFiX_S_B", "2"])
 def test_cmd_config_source_with_prefix():
     source = CmdConfigSource(prefix="PREFIX")
     do_assertions(source, "<CmdConfigSource(prefix='PREFIX')>")
