@@ -73,3 +73,6 @@ Add tuple_cast to the the cast submodule and document it
 
 ### v1.4.0
 Add `boolean_cast` and `optional_boolean_cast` to the cast submodule and document them
+
+### v1.5.0
+Add `CmdConfigSource` and documentation
