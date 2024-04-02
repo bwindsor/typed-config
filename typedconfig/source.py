@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 from abc import ABC, abstractmethod
-from typing import Optional, Dict
+from typing import Optional, Dict, cast
 from configparser import ConfigParser
 
 
@@ -98,7 +98,7 @@ class CmdConfigSource(ConfigSource):
         parser.add_argument("--" + arg_name, type=str)
         parsed_args, rest = parser.parse_known_args(sys_argv_lower)
         # Attribute should always exist, but will be None if the argument was not found
-        return getattr(parsed_args, arg_name)
+        return cast(Optional[str], getattr(parsed_args, arg_name))
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__qualname__}(prefix={repr(self.prefix)})>"
