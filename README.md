@@ -33,13 +33,18 @@ print(config.host)
 ```
 In PyCharm, and hopefully other IDEs, it will recognise the datatypes of your configuration and allow you to autocomplete. No more remembering strings to get the right thing out!
 
-## Upgrading from 0.x.x
+## Upgrading
+
+### From 0.x.x
 There is one breaking change when moving from `0.x.x` to `1.x.x`. The `key` function now expects all arguments to be keyword arguments. So simply replace any calls like so:
 ```python
 key('section', 'key', True, str, 'default')  # 0.x.x
 key(section_name='section', key_name='key', required=True, cast=str, default='default')  # 1.x.x
 ```
 The reason for this change is to tie down the return type of `key` properly. Previously, when `required=False` or when `cast=None` the return type would not include the possibility of `None` or `string`. The type checker should now be able to infer the return type based on the values of `required`, `cast` and `default`.
+
+###  From 1.x.x
+When upgrading from `1.x.x` to `2.x.x`, Python 3.7 no longer supported as it is end of life. As long as you are using Python >= 3.8, everything should just work.
 
 ## How it works
 Configuration is always supplied in a two level structure, so your source configuration can have multiple sections, and each section contains multiple key/value configuration pairs. For example:

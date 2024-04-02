@@ -76,3 +76,6 @@ Add `boolean_cast` and `optional_boolean_cast` to the cast submodule and documen
 
 ### v1.5.0
 Add `CmdConfigSource` and documentation
+
+### v2.0.0
+Drop support for Python 3.7 since it is end of life.
